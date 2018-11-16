@@ -22,3 +22,6 @@ addRecord record table = Just table{records = record : records table}
 --   insert :: a -> Table -> Table
 --   select :: a -> Table -> Table
 --   delete :: a -> Table -> Table
+
+select :: [(String, String)] -> [String] -> Maybe [[String]]
+select constraints outputs = _
