@@ -1,3 +1,5 @@
+{-# LANGUAGE NamedFieldPuns #-}
+
 module Data.Database.Database(Database(..)) where
 
 import Data.Database.Table(Table(..))
@@ -8,7 +10,7 @@ data Database = Database
   }
 
 createTable :: String -> Database -> Database
-createTable name db = Database (Table : getTables db)
+createTable name db = Database (_ : getTables db)
 
 describeTable :: String -> Database -> Maybe String
 describeTable name database = case getTables database of
@@ -18,4 +20,7 @@ describeTable name database = case getTables database of
     | otherwise    -> Nothing
 
 getTable :: String -> Database -> Maybe Table
-getTable string db = find _ (getTables database)
+getTable string db = find (tableNameIs string) (getTables db)
+
+tableNameIs :: String -> (Table -> Bool)
+tableNameIs string (Table {name}) = string == name

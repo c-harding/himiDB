@@ -1,12 +1,12 @@
-module Data.Database.Table where
+module Data.Database.Table(Table(..)) where
 
 import Data.Database.Record(Record(..))
-type Id = String
+type Name = String
 type Field = [String] 
 type Description = String
     
 data Table = Table 
-  { id :: Id 
+  { name :: Name 
   , fields :: Field
   , records :: Record
   , description :: Description
