@@ -1,6 +1,7 @@
 module Data.Database.Database(Database(..)) where
 
 import Data.Database.Table(Table(..))
+import Data.List(find)
 
 data Database = Database
   { getTables :: [Table]
@@ -16,3 +17,5 @@ describeTable name database = case getTables database of
     | name == name -> Just ""
     | otherwise    -> Nothing
 
+getTable :: String -> Database -> Maybe Table
+getTable string db = find _ (getTables database)
