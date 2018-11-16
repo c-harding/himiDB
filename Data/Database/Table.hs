@@ -11,8 +11,8 @@ data Constraint
   | IntEq Col Int
   | IntLt Col Int
   | Not Constraint
-  -- | And [Constraint]
-  -- | Or [Constraint]
+  | And Constraint Constraint
+  | Or Constraint Constraint
   deriving (Show)
 
 type Col = String
@@ -68,8 +68,11 @@ buildConstraints fields constraints =
       i <- elemIndex (c, IntRecord) fields
       return $ conditionAt i (intMatches (< v))
     Not con -> (not .) <$> buildConstraints fields con
-    -- And cons -> _ <$> sequence (buildConstraints fields <$> cons)
-    -- Or cons -> ((any .) . (<$>)) <$> sequence (buildConstraints fields <$> cons)
+    And con1 con2 -> combine (&&) <$> buildConstraints fields con1 <*> buildConstraints fields con2
+    Or con1 con2 -> combine (||) <$> buildConstraints fields con1 <*> buildConstraints fields con2
+
+combine :: (b -> c -> d) -> (a -> b) -> (a -> c) -> (a -> d)
+combine c f g x = f x `c` g x
 conditionAt :: Int -> (Value -> Bool) -> [Value] -> Bool
 conditionAt i p vs = p (vs !! i)
 
