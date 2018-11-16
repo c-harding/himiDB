@@ -24,7 +24,7 @@ deleteTable name (t:ts)
   | t `tableNameIs` name = Just ts
   | otherwise            = (t:) <$> deleteTable name ts
 
-select :: String -> [(String, String)] -> [String] -> Maybe [[String]]
+select :: String -> Constraint -> [String] -> Maybe [[String]]
 select name constraints outputs = T.select constraints outputs <$> getTable name
 
 getTable :: String -> Database -> Maybe Table

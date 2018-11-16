@@ -1,11 +1,21 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
-module Data.Database.Table(Table(tableName), empty, Field, addRecord) where
+module Data.Database.Table(Table(tableName, fields), empty, Field, addRecord, Constraint) where
 
 import Data.Database.Record(Record(..))
-data Type = IntRecord | StringRecord
+data Type = IntRecord | StringRecord deriving (Show)
+data Constraint
+  = StrEq Col String
+  | IntEq Col Int
+  | IntLt Col Int
+  | Not Constraint
+  | And [Constraint]
+  | Or [Constraint]
+  deriving (Show)
+
+type Col = String
 type Name = String
-type Field = (String, Type)
+type Field = (Col, Type)
 type Description = String
  
 data Table = Table 
@@ -21,5 +31,5 @@ empty name fields = Table name fields []
 addRecord :: Record -> Table -> Maybe Table
 addRecord record table = Just table{records = record : records table}
 
-select :: [(String, String)] -> [String] -> Maybe [[String]]
+select :: Constraint -> [String] -> Maybe [[String]]
 select constraints outputs = _
