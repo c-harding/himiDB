@@ -2,7 +2,7 @@
 
 module Data.Database.Database(Database) where
 
-import           Data.Database.Table(Table(tableName))
+import           Data.Database.Table(Table(tableName), Constraint)
 import           Data.Database.Record(Record)
 import qualified Data.Database.Table as T
 import Data.List(find)
@@ -25,7 +25,7 @@ deleteTable name (t:ts)
   | otherwise            = (t:) <$> deleteTable name ts
 
 select :: String -> Constraint -> [String] -> Database -> Maybe [[String]]
-select name constraints outputs db = T.select constraints outputs <$> getTable name db
+select name constraints outputs db = T.select constraints outputs =<< getTable name db
 
 getTable :: String -> Database -> Maybe Table
 getTable name = find (`tableNameIs` name)
