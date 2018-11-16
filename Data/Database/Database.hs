@@ -1,6 +1,6 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
-module Data.Database.Database(Database, createTable, insertRecord, describeTable, deleteTable, select) where
+module Data.Database.Database(Database, empty, createTable, insertRecord, describeTable, deleteTable, select) where
 
 import           Data.Database.Table(Table(tableName), Constraint)
 import           Data.Database.Record(Record)
@@ -9,14 +9,17 @@ import Data.List(find)
 
 type Database = [Table]
 
+empty :: Database
+empty = []
+
 createTable :: String -> [T.Field] -> Database -> Database
 createTable name fields db = (T.empty name fields : db)
 
 insertRecord :: String -> Record -> Database -> Maybe Database
-insertRecord name record db = liftUpdate (`tableNameIs` name) (T.addRecord record) db
+insertRecord name record = liftUpdate (`tableNameIs` name) (T.addRecord record)
 
 describeTable :: String -> Database -> Maybe String
-describeTable name db = tableName <$> getTable name db
+describeTable name db = T.describe <$> getTable name db
 
 deleteTable :: String -> Database -> Maybe Database
 deleteTable name [] = Nothing
@@ -26,6 +29,9 @@ deleteTable name (t:ts)
 
 select :: String -> Constraint -> [String] -> Database -> Maybe [[String]]
 select name constraints outputs db = T.select constraints outputs =<< getTable name db
+
+deleteWhere :: String -> Constraint -> Database -> Maybe Database
+deleteWhere name constraints = liftUpdate (`tableNameIs` name) (T.deleteWhere constraints)
 
 getTable :: String -> Database -> Maybe Table
 getTable name = find (`tableNameIs` name)

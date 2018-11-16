@@ -2,7 +2,10 @@ module Data.Database.Record (Type(..), Value(..), Record(..)) where
 
 data Type = IntRecord | StringRecord deriving (Show, Eq)
 
-data Value = IntValue Int | StringValue String deriving (Show, Eq)
+data Value = IntValue Int | StringValue String deriving (Eq)
+instance Show Value where
+  show (IntValue x) = show x
+  show (StringValue s) = show s
 
 data Record = Record
   { getValues :: [Value]

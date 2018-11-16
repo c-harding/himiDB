@@ -1,10 +1,10 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
-module Data.Database.Table(Table(tableName, fields), empty, Field, addRecord, Constraint, select) where
+module Data.Database.Table(Table(tableName, fields), empty, Field, addRecord, Constraint, select, deleteWhere, describe) where
 
-import Data.Database.Record(Record, Type(..), Value(..))
+import Data.Database.Record(Record(Record), Type(..), Value(..))
 import qualified Data.Database.Record as R
-import Data.List(elemIndex)
+import Data.List(elemIndex, transpose, intercalate)
 import Data.Maybe(catMaybes)
 data Constraint
   = StrEq Col String
@@ -37,14 +37,22 @@ filterCols :: [String] -> [Field] -> Maybe [[String]] -> Maybe [[String]]
 filterCols selected fields result = filterRow <$> result
   where 
     keepColumn (name, _) = name `elem` selected
-    keptFlags = keepColumn <$> fields
-    keep elem flag = if flag then Just elem else Nothing
-    filterRow row = catMaybes (zipWith keep row keptFlags)
+    filterRow row = zipFilter (keepColumn <$> fields) row
   
+zipFilter :: [Bool] -> [a] -> [a]
+zipFilter (True : ts) (x : xs) = x : zipFilter ts xs
+zipFilter (False : ts) (x : xs) = zipFilter ts xs
+zipFilter _ _ = []
 
 select :: Constraint -> [String] -> Table -> Maybe [[String]]
 select constraints [] table = applyConstraints constraints table
 select constraints xs table = filterCols xs (fields table) $ applyConstraints constraints table
+
+deleteWhere :: Constraint -> Table -> Maybe Table
+deleteWhere constraints table = do
+  predicate <- buildConstraints (fields table) constraints
+  let records' = Record <$> filter predicate (R.getValues <$> records table)
+  return table{records=records'}
 
 getValues :: Table -> [[Value]]
 getValues table = R.getValues <$> records table
@@ -83,3 +91,16 @@ stringMatches p _ = False
 intMatches :: (Int -> Bool) -> Value -> Bool
 intMatches p (IntValue i) = p i
 intMatches p _ = False
+
+describe :: Table -> String
+describe table = intercalate " | " (zipWith pad lengths titles) ++ "\n"
+                ++ intercalate "-+-" (map (`replicate` '-') lengths) ++ "\n"
+                ++ intercalate "\n" (map (intercalate " | " . zipWith pad lengths) values)
+  where
+    titles = fst <$> fields table
+
+    values = map show <$> getValues table
+    lengths = maximum . map length <$> transpose (titles : values)
+
+    pad n [] = replicate n ' '
+    pad n (x:xs) = x : pad (pred n) xs
