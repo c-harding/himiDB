@@ -1,5 +1,6 @@
 module Data.Database.Record where
 
+type Field       = String
 type FieldValues = [(String, String)]
 
 newtype Fields = 
@@ -9,12 +10,21 @@ newtype Fields =
 
 data Record = 
     Record {
-          getFlds   :: Fields 
-        , getFldVls :: FieldValues
+          getFields      :: Fields 
+        , getFieldValues :: FieldValues
     } deriving (Show, Eq)
+
+newtype Predicate = 
+    Predicate {
+        unPredicate :: String -> Bool
+    }
 
 createRecord :: Fields -> FieldValues -> Record
 createRecord = Record
 
-selectFromRecord :: String -> Record -> Maybe String
-selectFromRecord qry = lookup qry . getFldVls
+selectFromRecord :: Field -> Record -> Maybe String
+selectFromRecord field = lookup field . getFieldValues
+
+-- apply a predicate on the fieldvalues
+filterRecord :: Predicate -> Record -> FieldValues
+filterRecord (Predicate p) = filter (p . snd) . getFieldValues
