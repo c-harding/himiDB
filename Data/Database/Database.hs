@@ -13,16 +13,25 @@ createTable :: String -> [T.Field] -> Database -> Database
 createTable name fields db = (T.empty name fields : db)
 
 insertRecord :: String -> Record -> Database -> Maybe Database
-insertRecord name record db = liftUpdate (tableNameIs name) (T.addRecord record) db
+insertRecord name record db = liftUpdate (`tableNameIs` name) (T.addRecord record) db
 
 describeTable :: String -> Database -> Maybe String
 describeTable name db = tableName <$> getTable name db
 
-getTable :: String -> Database -> Maybe Table
-getTable name = find (tableNameIs name)
+deleteTable :: String -> Database -> Maybe Database
+deleteTable name [] = Nothing
+deleteTable name (t:ts)
+  | t `tableNameIs` name = Just ts
+  | otherwise            = (t:) <$> deleteTable name ts
 
-tableNameIs :: String -> (Table -> Bool)
-tableNameIs name table = name == tableName table
+select :: String -> [(String, String)] -> [String] -> Maybe [[String]]
+select name constraints outputs = T.select constraints outputs <$> getTable name
+
+getTable :: String -> Database -> Maybe Table
+getTable name = find (`tableNameIs` name)
+
+tableNameIs :: Table -> String -> Bool
+table `tableNameIs` name = name == tableName table
 
 update :: (a -> Bool) -> (a -> a) -> [a] -> Maybe [a]
 update p f []     = Nothing
