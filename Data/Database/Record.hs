@@ -1,8 +1,6 @@
 module Data.Database.Record where
 
-import qualified Data.Map as M
-
-type FieldValues = M.Map String String
+type FieldValues = [(String, String)]
 
 newtype Fields = 
     Fields {
@@ -16,7 +14,7 @@ data Record =
     } deriving (Show, Eq)
 
 createRecord :: Fields -> FieldValues -> Record
-createRecord flds fldVls = Record flds fldVls
+createRecord = Record
 
 selectFromRecord :: String -> Record -> Maybe String
-selectFromRecord qry rcd = M.lookup qry (getFldVls rcd)
+selectFromRecord qry = lookup qry . getFldVls
