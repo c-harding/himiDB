@@ -22,8 +22,11 @@ executable BecomingFunctional-hs
                        Data.Database.Table
                        Data.Database.Record
   -- other-extensions:
-  build-depends:       base >=4.8 && <4.9
+  build-depends:       base
                      , containers
+                     , mtl
+                     , parsec
   hs-source-dirs:
                        .
   default-language:    Haskell2010
+  ghc-options:         -Wall
