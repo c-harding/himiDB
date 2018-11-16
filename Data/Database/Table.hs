@@ -1,8 +1,8 @@
 module Data.Database.Table where
 
+import Data.Database.Record(Record(..))
 type Id = String
 type Field = [String] 
-type Record = (String, String)
 type Description = String
     
 data Table = Table 
@@ -12,9 +12,8 @@ data Table = Table
   , description :: Description
   }
 
-class TableTypeClass a where
-  insert :: a -> Table -> Table
-  select :: a -> Table -> Table
-  delete :: a -> Table -> Table
-  description :: a -> Table -> Table
-  
+-- class TableTypeClass a where
+--   insert :: a -> Table -> Table
+--   select :: a -> Table -> Table
+--   delete :: a -> Table -> Table
+--   description :: a -> Table -> Table

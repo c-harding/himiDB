@@ -19,6 +19,7 @@ executable BecomingFunctional-hs
   main-is:             main.hs
   other-modules:
                        Data.Database.Record
+                       Data.Database.Table
   -- other-extensions:
   build-depends:       base >=4.8 && <4.9
                      , containers
