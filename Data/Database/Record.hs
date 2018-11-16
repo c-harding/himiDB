@@ -14,11 +14,6 @@ data Record =
         , getFieldValues :: FieldValues
     } deriving (Show, Eq)
 
-newtype Predicate = 
-    Predicate {
-        unPredicate :: String -> Bool
-    }
-
 createRecord :: Fields -> FieldValues -> Record
 createRecord = Record
 
@@ -26,5 +21,5 @@ selectFromRecord :: Field -> Record -> Maybe String
 selectFromRecord field = lookup field . getFieldValues
 
 -- apply a predicate on the fieldvalues
-filterRecord :: Predicate -> Record -> FieldValues
-filterRecord (Predicate p) = filter (p . snd) . getFieldValues
+filterRecord :: (String -> Bool) -> Record -> FieldValues
+filterRecord p = filter (p . snd) . getFieldValues
