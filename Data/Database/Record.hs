@@ -4,7 +4,9 @@ data Type = IntRecord | StringRecord deriving (Show, Eq)
 
 data Value = IntValue Int | StringValue String deriving (Show, Eq)
 
-data Record = Record [Value] deriving (Show, Eq)
+data Record = Record
+  { getValues :: [Value]
+  } deriving (Show, Eq)
 
 -- createRecord :: Fields -> FieldValues -> Record
 -- createRecord = Record
