@@ -17,9 +17,11 @@ cabal-version:       >=1.10
 
 executable BecomingFunctional-hs
   main-is:             main.hs
-  -- other-modules:
+  other-modules:
+                       Data.Database.Record
   -- other-extensions:
   build-depends:       base >=4.8 && <4.9
                      , containers
-  -- hs-source-dirs:
+  hs-source-dirs:
+                       .
   default-language:    Haskell2010
