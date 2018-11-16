@@ -18,8 +18,9 @@ cabal-version:       >=1.10
 executable BecomingFunctional-hs
   main-is:             main.hs
   other-modules:
-                       Data.Database.Record
+                       Data.Database.Database
                        Data.Database.Table
+                       Data.Database.Record
   -- other-extensions:
   build-depends:       base >=4.8 && <4.9
                      , containers

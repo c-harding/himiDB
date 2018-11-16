@@ -1,26 +1,37 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
-module Data.Database.Database(Database(..)) where
+module Data.Database.Database(Database) where
 
-import Data.Database.Table(Table(..))
+import           Data.Database.Table(Table(tableName))
+import           Data.Database.Record(Record)
+import qualified Data.Database.Table as T
 import Data.List(find)
 
-data Database = Database
-  { getTables :: [Table]
-  }
+type Database = [Table]
 
-createTable :: String -> Database -> Database
-createTable name db = Database (_ : getTables db)
+createTable :: String -> [T.Field] -> Database -> Database
+createTable name fields db = (T.empty name fields : db)
+
+insertRecord :: String -> Record -> Database -> Maybe Database
+insertRecord name record db = liftUpdate (tableNameIs name) (T.addRecord record) db
 
 describeTable :: String -> Database -> Maybe String
-describeTable name database = case getTables database of
-  [] -> Nothing
-  table : ts
-    | name == name -> Just ""
-    | otherwise    -> Nothing
+describeTable name db = tableName <$> getTable name db
 
 getTable :: String -> Database -> Maybe Table
-getTable string db = find (tableNameIs string) (getTables db)
+getTable name = find (tableNameIs name)
 
 tableNameIs :: String -> (Table -> Bool)
-tableNameIs string (Table {name}) = string == name
+tableNameIs name table = name == tableName table
+
+update :: (a -> Bool) -> (a -> a) -> [a] -> Maybe [a]
+update p f []     = Nothing
+update p f (x:xs)
+  | p x           = Just $ f x : xs
+  | otherwise     = (x :) <$> update p f xs
+
+liftUpdate :: (a -> Bool) -> (a -> Maybe a) -> [a] -> Maybe [a]
+liftUpdate p f []     = Nothing
+liftUpdate p f (x:xs)
+  | p x               = (: xs) <$> f x
+  | otherwise         = (x :) <$> liftUpdate p f xs

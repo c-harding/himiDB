@@ -1,19 +1,24 @@
-module Data.Database.Table(Table(..)) where
+{-# LANGUAGE NamedFieldPuns #-}
+
+module Data.Database.Table(Table(tableName), empty, Field, addRecord) where
 
 import Data.Database.Record(Record(..))
 type Name = String
-type Field = [String] 
-type Description = String
+type Field = String
     
 data Table = Table 
-  { name :: Name 
-  , fields :: Field
-  , records :: Record
-  , description :: Description
+  { tableName :: Name 
+  , fields :: [Field]
+  , records :: [Record]
   }
+
+empty :: String -> [Field] -> Table
+empty name fields = Table name fields []
+
+addRecord :: Record -> Table -> Maybe Table
+addRecord record table = Just table{records = record : records table}
 
 -- class TableTypeClass a where
 --   insert :: a -> Table -> Table
 --   select :: a -> Table -> Table
 --   delete :: a -> Table -> Table
---   description :: a -> Table -> Table
