@@ -2,8 +2,7 @@
 
 module Data.Database.Table(Table(tableName, fields), empty, Field, addRecord, Constraint) where
 
-import Data.Database.Record(Record(..))
-data Type = IntRecord | StringRecord deriving (Show)
+import Data.Database.Record(Record(..), Type(..))
 data Constraint
   = StrEq Col String
   | IntEq Col Int

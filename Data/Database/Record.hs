@@ -1,25 +1,17 @@
-module Data.Database.Record where
+module Data.Database.Record (Type(..), Value(..), Record(..)) where
 
-type Field       = String
-type FieldValues = [(String, String)]
+data Type = IntRecord | StringRecord deriving (Show, Eq)
 
-newtype Fields = 
-    Fields {
-        unfields :: String
-    } deriving (Show, Eq)
+data Value = IntValue Int | StringValue String deriving (Show, Eq)
 
-data Record = 
-    Record {
-          getFields      :: Fields 
-        , getFieldValues :: FieldValues
-    } deriving (Show, Eq)
+data Record = Record [Value] deriving (Show, Eq)
 
-createRecord :: Fields -> FieldValues -> Record
-createRecord = Record
+-- createRecord :: Fields -> FieldValues -> Record
+-- createRecord = Record
 
-selectFromRecord :: Field -> Record -> Maybe String
-selectFromRecord field = lookup field . getFieldValues
+-- selectFromRecord :: Field -> Record -> Maybe String
+-- selectFromRecord field = lookup field . getFieldValues
 
--- apply a predicate on the fieldvalues
-filterRecord :: (String -> Bool) -> Record -> FieldValues
-filterRecord p = filter (p . snd) . getFieldValues
+-- -- apply a predicate on the fieldvalues
+-- filterRecord :: (String -> Bool) -> Record -> FieldValues
+-- filterRecord p = filter (p . snd) . getFieldValues
