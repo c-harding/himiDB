@@ -23,7 +23,7 @@ empty :: String -> [Field] -> String -> Table
 empty name fields description = Table name fields [] description
 
 addRecord :: Record -> Table -> Error Table
-addRecord record table = checkTypes (fields table) record *> Just table{records = record : records table}
+addRecord record table = checkTypes (fields table) record *> noError table{records = record : records table}
 
 filterCols :: [String] -> [Field] -> Error [[String]] -> Error [[String]]
 filterCols selected fields result = filterRow <$> result
@@ -79,23 +79,25 @@ buildConstraints fields constraints =
       (not .) <$> buildConstraints fields con
 
 resolveExpr :: ValueClass a => Type -> [Field] -> Either a String -> Error ([Value] -> a)
-resolveExpr _ _ (Left lit) = Just $ const lit
+resolveExpr _ _ (Left lit) = noError $ const lit
 resolveExpr t fields (Right col) = fmap (getValue) . flip (!!) <$> colIndex (col, t) fields
 
 colIndex :: (String, Type) -> [Field] -> Error Int
-colIndex (col, t) fields = checkColType =<< col `elemIndex` (map fst fields)
+colIndex (col, t) fields = checkColType =<< orError ("No such column "++col) (col `elemIndex` (map fst fields))
   where
-    checkColType c = if snd (fields !! c) == t then Just c else Nothing
+    checkColType c
+      | snd (fields !! c) == t = noError c
+      | otherwise              = throwError ("Column "++col++" is of type "++show t++", not "++show (fields !! c))
 
 checkType :: Field -> Value -> Error ()
-checkType (_, StringRecord) (StringValue _) = Just ()
-checkType (_, IntRecord) (IntValue _) = Just ()
-checkType _ _ = Nothing
+checkType (_, StringRecord) (StringValue _) = noError ()
+checkType (_, IntRecord) (IntValue _) = noError ()
+checkType (c, _) _ = throwError ("Wrong type for column "++c)
 
 checkTypes :: [Field] -> [Value] -> Error ()
-checkTypes [] [] = Just ()
+checkTypes [] [] = noError ()
 checkTypes (f:fs) (v:vs) = checkType f v *> checkTypes fs vs
-checkTypes _ _ = Nothing
+checkTypes _ _ = throwError "Wrong number of columns provided"
 
 describe :: Table -> String
 describe table = intercalate " | " (zipWith pad lengths titles) ++ "\n"

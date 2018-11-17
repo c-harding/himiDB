@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module Data.Database.Types (Type(..), Value(..), Constraint(..), Error, Record, ValueClass(..)) where
+module Data.Database.Types (Type(..), Value(..), Constraint(..), Error, ErrorReport, Record, ValueClass(..), noError, throwError, orError) where
 
 data Type = IntRecord | StringRecord deriving (Show, Eq)
 
@@ -29,7 +29,7 @@ instance ValueClass Int where
 -- mkValue IntRecord = IntValue
 -- mkValue StringRecord = StringValue
 
-type Error = Maybe
+type Error = Either ErrorReport
 type ErrorReport = ()
 
 instance Show Value where
@@ -46,3 +46,12 @@ data Constraint
   | And Constraint Constraint
   | Or Constraint Constraint
   deriving (Show)
+
+noError :: a -> Error a
+noError = Right
+
+throwError :: String -> Error a
+throwError _ = Left ()
+
+orError :: String -> Maybe a -> Error a
+orError msg = maybe (throwError msg) Right

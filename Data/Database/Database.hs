@@ -14,37 +14,34 @@ createTable :: String -> [T.Field] -> String -> Database -> Database
 createTable name fields description db = (T.empty name fields description: db)
 
 insertRecord :: String -> Record -> Database -> Error Database
-insertRecord name record = liftUpdate (`tableNameIs` name) (T.addRecord record)
+insertRecord name record = updateTable name (T.addRecord record)
 
 describeTable :: String -> Database -> Error String
 describeTable name db = T.describe <$> getTable name db
 
 deleteTable :: String -> Database -> Error Database
-deleteTable _ [] = Nothing
+deleteTable name [] = throwError ("Table not found: "++name)
 deleteTable name (t:ts)
-  | t `tableNameIs` name = Just ts
+  | t `tableNameIs` name = noError ts
   | otherwise            = (t:) <$> deleteTable name ts
 
 select :: String -> Constraint -> [String] -> Database -> Error [[String]]
 select name constraints outputs db = T.select constraints outputs =<< getTable name db
 
 deleteWhere :: String -> Constraint -> Database -> Error Database
-deleteWhere name constraints = liftUpdate (`tableNameIs` name) (T.deleteWhere constraints)
+deleteWhere name constraints = updateTable name (T.deleteWhere constraints)
 
 getTable :: String -> Database -> Error Table
-getTable name = find (`tableNameIs` name)
+getTable name = orError ("Table not found: "++name) . find (`tableNameIs` name)
 
 tableNameIs :: Table -> String -> Bool
 table `tableNameIs` name = name == tableName table
 
-update :: (a -> Bool) -> (a -> a) -> [a] -> Error [a]
-update _ _ []     = Nothing
-update p f (x:xs)
-  | p x           = Just $ f x : xs
-  | otherwise     = (x :) <$> update p f xs
+updateTable :: String -> (Table -> Error Table) -> [Table] -> Error [Table]
+updateTable name f = update ({-"Table not found: "++name-}) (`tableNameIs` name) f
 
-liftUpdate :: (a -> Bool) -> (a -> Error a) -> [a] -> Error [a]
-liftUpdate _ _ []     = Nothing
-liftUpdate p f (x:xs)
+update :: ErrorReport -> (a -> Bool) -> (a -> Error a) -> [a] -> Error [a]
+update msg _ _ []     = throwError (show msg)
+update msg p f (x:xs)
   | p x               = (: xs) <$> f x
-  | otherwise         = (x :) <$> liftUpdate p f xs
+  | otherwise         = (x :) <$> update msg p f xs
