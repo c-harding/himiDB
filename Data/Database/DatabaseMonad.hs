@@ -2,7 +2,7 @@ module Data.Database.DatabaseMonad(DatabaseMonad, D.empty, createTable, insertRe
 
 import           Control.Monad.State.Strict(State, modify, get, put)
 
-import           Data.Database.Record as R
+import           Data.Database.Types
 import qualified Data.Database.Table as T
 import qualified Data.Database.Database as D
 

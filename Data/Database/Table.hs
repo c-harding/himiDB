@@ -2,18 +2,9 @@
 
 module Data.Database.Table(Table(tableName, fields), empty, Field, addRecord, Constraint, select, deleteWhere, describe) where
 
-import Data.Database.Record(Record(Record), Type(..), Value(..))
-import qualified Data.Database.Record as R
+import Data.Database.Types
 import Data.List(elemIndex, transpose, intercalate)
-import Data.Maybe()
-data Constraint
-  = StrEq Col String
-  | IntEq Col Int
-  | IntLt Col Int
-  | Not Constraint
-  | And Constraint Constraint
-  | Or Constraint Constraint
-  deriving (Show)
+import Control.Applicative(liftA2)
 
 type Col = String
 type Name = String
@@ -31,10 +22,10 @@ data Table = Table
 empty :: String -> [Field] -> Table
 empty name fields = Table name fields [] ""
 
-addRecord :: Record -> Table -> Maybe Table
-addRecord record table = Just table{records = record : records table}
+addRecord :: Record -> Table -> Error Table
+addRecord record table = checkTypes (fields table) record *> Just table{records = record : records table}
 
-filterCols :: [String] -> [Field] -> Maybe [[String]] -> Maybe [[String]]
+filterCols :: [String] -> [Field] -> Error [[String]] -> Error [[String]]
 filterCols selected fields result = filterRow <$> result
   where 
     keepColumn (name, _) = name `elem` selected
@@ -47,51 +38,52 @@ zipFilter _ _ = []
 
 select :: Constraint -> [String] -> Table -> Maybe [[String]]
 select constraints [] table = applyConstraints constraints table
-select constraints xs table = filterCols xs (fields table) $ applyConstraints constraints table
+select constraints xs table = filterCols xs (fields table) . applyConstraints constraints $ table
 
 deleteWhere :: Constraint -> Table -> Maybe Table
 deleteWhere constraints table = do
   predicate <- buildConstraints (fields table) constraints
-  let records' = Record <$> filter predicate (R.getValues <$> records table)
+  let records' = filter predicate (records table)
   return table{records=records'}
-
-getValues :: Table -> [[Value]]
-getValues table = R.getValues <$> records table
 
 applyConstraints  :: Constraint -> Table -> Maybe [[String]]
 applyConstraints constraints table = do 
   predicate <- buildConstraints (fields table) constraints
-  let values = (filter predicate (getValues table))
+  let values = (filter predicate (records table))
   return (map show <$> values)
 
 buildConstraints :: [Field] -> Constraint -> Maybe ([Value] -> Bool)
 buildConstraints fields constraints = 
   case constraints of 
-    StrEq c v -> do
-      i <- elemIndex (c, StringRecord) fields
-      return $ conditionAt i (stringMatches (== v))
-    IntEq c v -> do 
-      i <- elemIndex (c, IntRecord) fields
-      return $ conditionAt i (intMatches (== v))
-    IntLt c v -> do 
-      i <- elemIndex (c, IntRecord) fields
-      return $ conditionAt i (intMatches (< v))
+    StrEq a b -> 
+      liftA2 (liftA2 (==))
+        (resolveExpr getStringValue fields a)
+        (resolveExpr getStringValue fields b)
+    IntEq a b -> 
+      liftA2 (liftA2 (==))
+        (resolveExpr getIntValue fields a)
+        (resolveExpr getIntValue fields b)
+    IntLt a b ->
+      liftA2 (liftA2 (<))
+        (resolveExpr getIntValue fields a)
+        (resolveExpr getIntValue fields b)
     Not con -> (not .) <$> buildConstraints fields con
-    And con1 con2 -> combine (&&) <$> buildConstraints fields con1 <*> buildConstraints fields con2
-    Or con1 con2 -> combine (||) <$> buildConstraints fields con1 <*> buildConstraints fields con2
+    And con1 con2 -> liftA2 (&&) <$> buildConstraints fields con1 <*> buildConstraints fields con2
+    Or con1 con2 -> liftA2 (||) <$> buildConstraints fields con1 <*> buildConstraints fields con2
 
-combine :: (b -> c -> d) -> (a -> b) -> (a -> c) -> (a -> d)
-combine c f g x = f x `c` g x
-conditionAt :: Int -> (Value -> Bool) -> [Value] -> Bool
-conditionAt i p vs = p (vs !! i)
+resolveExpr :: (Value -> a) -> [Field] -> Either a String -> Maybe ([Value] -> a)
+resolveExpr _ _ (Left lit) = Just $ const lit
+resolveExpr getValue fields (Right col) = fmap getValue . flip (!!) <$> col `elemIndex` (map fst fields)
 
-stringMatches :: (String -> Bool) -> Value -> Bool
-stringMatches p (StringValue s) = p s
-stringMatches _ _ = False
+checkType :: Field -> Value -> Error ()
+checkType (_, StringRecord) (StringValue _) = Just ()
+checkType (_, IntRecord) (IntValue _) = Just ()
+checkType _ _ = Nothing
 
-intMatches :: (Int -> Bool) -> Value -> Bool
-intMatches p (IntValue i) = p i
-intMatches _ _ = False
+checkTypes :: [Field] -> [Value] -> Error ()
+checkTypes [] [] = Just ()
+checkTypes (f:fs) (v:vs) = checkType f v *> checkTypes fs vs
+checkTypes _ _ = Nothing
 
 describe :: Table -> String
 describe table = intercalate " | " (zipWith pad lengths titles) ++ "\n"
@@ -100,7 +92,7 @@ describe table = intercalate " | " (zipWith pad lengths titles) ++ "\n"
   where
     titles = fst <$> fields table
 
-    values = map show <$> getValues table
+    values = map show <$> records table
     lengths = maximum . map length <$> transpose (titles : values)
 
     pad n [] = replicate n ' '
