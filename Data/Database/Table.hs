@@ -67,9 +67,15 @@ buildConstraints fields constraints =
       liftA2 (liftA2 (<))
         (resolveExpr getIntValue fields a)
         (resolveExpr getIntValue fields b)
+    And con1 con2 ->
+      liftA2 (liftA2 (&&))
+        (buildConstraints fields con1)
+        (buildConstraints fields con2)
+    Or con1 con2 ->
+      liftA2 (liftA2 (||))
+        (buildConstraints fields con1)
+        (buildConstraints fields con2)
     Not con -> (not .) <$> buildConstraints fields con
-    And con1 con2 -> liftA2 (&&) <$> buildConstraints fields con1 <*> buildConstraints fields con2
-    Or con1 con2 -> liftA2 (||) <$> buildConstraints fields con1 <*> buildConstraints fields con2
 
 resolveExpr :: (Value -> a) -> [Field] -> Either a String -> Maybe ([Value] -> a)
 resolveExpr _ _ (Left lit) = Just $ const lit
