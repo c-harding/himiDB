@@ -4,9 +4,10 @@ module Main where
 import Control.Monad.State.Strict
 import System.Exit (exitSuccess)
 import Control.Applicative (some, liftA2)
+import System.IO
 
 -- parsing stuff
-import Text.Parsec
+import Text.Parsec hiding (getInput)
 
 import qualified Data.Database.DatabaseMonad as DBM
 import Data.Database.Database
@@ -60,7 +61,7 @@ intP = read <$> some digit
 valueP :: Parser Value
 valueP = 
         IntValue <$> intP 
-    <|> StringValue <$> some alphaNum
+    <|> StringValue <$ tok "\"" <*> some alphaNum <* char '"'
 
 recordP :: Parser Record
 recordP = 
@@ -77,7 +78,7 @@ inputP :: Parser Input
 inputP =
         createP
     <|> insertP
-    <|> describeP
+    <|> try describeP
     <|> deleteP
     <|> exitP
 
@@ -89,17 +90,18 @@ input2State (Insert name record) =
 input2State (Delete name)        = 
    DBM.deleteTable name >> get >>= liftIO . print
 input2State (Select name contraints pFields) =
-    maybe (pure ()) (liftIO . print) =<< DBM.select name contraints pFields
-input2State (Describe name) = maybe (pure ()) (liftIO . print) =<< DBM.describeTable name
+    either (liftIO . hPutStrLn stderr . ("Error: "++)) (liftIO . print) =<< DBM.select name contraints pFields
+input2State (Describe name) = 
+    either (liftIO . hPutStrLn stderr . ("Error: "++)) (liftIO . putStrLn) =<< DBM.describeTable name
 input2State Exit            = liftIO exitSuccess
 
-gitInput :: (MonadState Database m, MonadIO m) => m () 
-gitInput = forever $ do
+getInput :: (MonadState Database m, MonadIO m) => m () 
+getInput = forever $ do
     s <- liftIO getLine
     let eitherInput = parse inputP "" s
     case eitherInput of
-        Left _ -> pure ()
+        Left errMsg -> liftIO . hPutStrLn stderr . show $ errMsg
         Right input -> input2State input
 
 main :: IO ()
-main = evalStateT gitInput []
+main = evalStateT getInput []
