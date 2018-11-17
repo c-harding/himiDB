@@ -13,37 +13,37 @@ empty = []
 createTable :: String -> [T.Field] -> String -> Database -> Database
 createTable name fields description db = (T.empty name fields description: db)
 
-insertRecord :: String -> Record -> Database -> Maybe Database
+insertRecord :: String -> Record -> Database -> Error Database
 insertRecord name record = liftUpdate (`tableNameIs` name) (T.addRecord record)
 
-describeTable :: String -> Database -> Maybe String
+describeTable :: String -> Database -> Error String
 describeTable name db = T.describe <$> getTable name db
 
-deleteTable :: String -> Database -> Maybe Database
+deleteTable :: String -> Database -> Error Database
 deleteTable _ [] = Nothing
 deleteTable name (t:ts)
   | t `tableNameIs` name = Just ts
   | otherwise            = (t:) <$> deleteTable name ts
 
-select :: String -> Constraint -> [String] -> Database -> Maybe [[String]]
+select :: String -> Constraint -> [String] -> Database -> Error [[String]]
 select name constraints outputs db = T.select constraints outputs =<< getTable name db
 
-deleteWhere :: String -> Constraint -> Database -> Maybe Database
+deleteWhere :: String -> Constraint -> Database -> Error Database
 deleteWhere name constraints = liftUpdate (`tableNameIs` name) (T.deleteWhere constraints)
 
-getTable :: String -> Database -> Maybe Table
+getTable :: String -> Database -> Error Table
 getTable name = find (`tableNameIs` name)
 
 tableNameIs :: Table -> String -> Bool
 table `tableNameIs` name = name == tableName table
 
-update :: (a -> Bool) -> (a -> a) -> [a] -> Maybe [a]
+update :: (a -> Bool) -> (a -> a) -> [a] -> Error [a]
 update _ _ []     = Nothing
 update p f (x:xs)
   | p x           = Just $ f x : xs
   | otherwise     = (x :) <$> update p f xs
 
-liftUpdate :: (a -> Bool) -> (a -> Maybe a) -> [a] -> Maybe [a]
+liftUpdate :: (a -> Bool) -> (a -> Error a) -> [a] -> Error [a]
 liftUpdate _ _ []     = Nothing
 liftUpdate p f (x:xs)
   | p x               = (: xs) <$> f x

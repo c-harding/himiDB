@@ -36,23 +36,23 @@ zipFilter (True : ts) (x : xs) = x : zipFilter ts xs
 zipFilter (False : ts) (_ : xs) = zipFilter ts xs
 zipFilter _ _ = []
 
-select :: Constraint -> [String] -> Table -> Maybe [[String]]
+select :: Constraint -> [String] -> Table -> Error [[String]]
 select constraints [] table = applyConstraints constraints table
 select constraints xs table = filterCols xs (fields table) . applyConstraints constraints $ table
 
-deleteWhere :: Constraint -> Table -> Maybe Table
+deleteWhere :: Constraint -> Table -> Error Table
 deleteWhere constraints table = do
   predicate <- buildConstraints (fields table) constraints
   let records' = filter predicate (records table)
   return table{records=records'}
 
-applyConstraints  :: Constraint -> Table -> Maybe [[String]]
+applyConstraints  :: Constraint -> Table -> Error [[String]]
 applyConstraints constraints table = do 
   predicate <- buildConstraints (fields table) constraints
   let values = (filter predicate (records table))
   return (map show <$> values)
 
-buildConstraints :: [Field] -> Constraint -> Maybe ([Value] -> Bool)
+buildConstraints :: [Field] -> Constraint -> Error ([Value] -> Bool)
 buildConstraints fields constraints = 
   case constraints of 
     StrEq a b -> 
@@ -75,9 +75,10 @@ buildConstraints fields constraints =
       liftA2 (liftA2 (||))
         (buildConstraints fields con1)
         (buildConstraints fields con2)
-    Not con -> (not .) <$> buildConstraints fields con
+    Not con ->
+      (not .) <$> buildConstraints fields con
 
-resolveExpr :: ValueClass a => Type -> [Field] -> Either a String -> Maybe ([Value] -> a)
+resolveExpr :: ValueClass a => Type -> [Field] -> Either a String -> Error ([Value] -> a)
 resolveExpr _ _ (Left lit) = Just $ const lit
 resolveExpr t fields (Right col) = fmap (getValue) . flip (!!) <$> colIndex (col, t) fields
 

@@ -30,6 +30,7 @@ instance ValueClass Int where
 -- mkValue StringRecord = StringValue
 
 type Error = Maybe
+type ErrorReport = ()
 
 instance Show Value where
     show (IntValue x) = show x
