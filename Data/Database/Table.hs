@@ -1,15 +1,10 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
-module Data.Database.Table(Table(tableName, fields), empty, Field, addRecord, Constraint, select, deleteWhere, describe) where
+module Data.Database.Table(Table(tableName, fields), empty, addRecord, Constraint, select, deleteWhere, describe, showTable) where
 
 import Data.Database.Types
 import Data.List(elemIndex, transpose, intercalate)
 import Control.Applicative(liftA2)
-
-type Col = String
-type Name = String
-type Field = (Col, Type)
-type Description = String
  
 data Table = Table 
   { tableName :: Name 
@@ -101,13 +96,20 @@ checkTypes _ _ = throwError "Wrong number of columns provided"
 
 describe :: Table -> String
 describe table = intercalate " | " (zipWith pad lengths titles) ++ "\n"
+                ++ intercalate " | " (zipWith pad lengths types) ++ "\n"
                 ++ intercalate "-+-" (map (`replicate` '-') lengths) ++ "\n"
                 ++ intercalate "\n" (map (intercalate " | " . zipWith pad lengths) values)
   where
     titles = fst <$> fields table
+    types = show . snd <$> fields table
 
     values = map show <$> records table
-    lengths = maximum . map length <$> transpose (titles : values)
+    lengths = maximum . map length <$> transpose (titles : types : values)
 
     pad n [] = replicate n ' '
     pad n (x:xs) = x : pad (pred n) xs
+
+showTable :: Table -> String
+showTable t = tableName t ++ " (" ++ (intercalate ", " $ showField <$> fields t) ++ ") " ++ description t
+  where
+    showField (n, ty) = n ++ " " ++ show ty

@@ -22,11 +22,13 @@ executable BecomingFunctional-hs
                        Data.Database.DatabaseMonad
                        Data.Database.Table
                        Data.Database.Types
+                       Main
   -- other-extensions:
   build-depends:       base
                      , containers
                      , mtl
-                     , parsec
+                     , megaparsec >= 7.0.0
+                     , ansi-terminal
   hs-source-dirs:    ., Data
   default-language:    Haskell2010
   ghc-options:         -Wall

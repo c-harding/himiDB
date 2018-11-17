@@ -1,11 +1,22 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module Data.Database.Types (Type(..), Value(..), Constraint(..), Error, ErrorReport, Record, ValueClass(..), noError, throwError, orError) where
+module Data.Database.Types(
+  Type(..), Value(..), Constraint(..), ValueClass(..),
+  Field, Col, Name, Description, Error, ErrorReport, Record,
+  noError, throwError, orError) where
 
-data Type = IntRecord | StringRecord deriving (Show, Eq)
+data Type = IntRecord | StringRecord deriving (Eq)
+instance Show Type where
+  show IntRecord = "int"
+  show StringRecord = "string"
 
 type Record = [Value]
+
+type Col = String
+type Name = String
+type Description = String
+type Field = (Col, Type)
 
 data Value = IntValue { getIntValue :: Int } | StringValue { getStringValue :: String } deriving (Eq)
 

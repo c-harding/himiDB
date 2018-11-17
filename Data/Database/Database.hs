@@ -1,16 +1,16 @@
-module Data.Database.Database(Database, empty, createTable, insertRecord, describeTable, deleteTable, deleteWhere, select) where
+module Data.Database.Database(Database, empty, createTable, insertRecord, describeTable, deleteTable, deleteWhere, select, showTables) where
 
 import           Data.Database.Types
-import           Data.Database.Table(Table(tableName), Constraint)
+import           Data.Database.Table(Table(tableName), Constraint, showTable)
 import qualified Data.Database.Table as T
-import Data.List(find)
+import Data.List(find, intercalate)
 
 type Database = [Table]
 
 empty :: Database
 empty = []
 
-createTable :: String -> [T.Field] -> String -> Database -> Database
+createTable :: String -> [Field] -> String -> Database -> Database
 createTable name fields description db = (T.empty name fields description: db)
 
 insertRecord :: String -> Record -> Database -> Error Database
@@ -39,6 +39,9 @@ table `tableNameIs` name = name == tableName table
 
 updateTable :: String -> (Table -> Error Table) -> [Table] -> Error [Table]
 updateTable name f = update ("Table not found: "++name) (`tableNameIs` name) f
+
+showTables :: Database -> String
+showTables db = intercalate "\n" $ showTable <$> db
 
 update :: ErrorReport -> (a -> Bool) -> (a -> Error a) -> [a] -> Error [a]
 update msg _ _ []     = throwError (show msg)
