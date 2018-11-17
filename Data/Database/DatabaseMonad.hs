@@ -1,27 +1,27 @@
-module Data.Database.DatabaseMonad(DatabaseMonad, D.empty, createTable, insertRecord, describeTable, deleteTable, select) where
+{-# LANGUAGE FlexibleContexts #-}
 
-import           Control.Monad.State.Strict(State, modify, get, put)
+module Data.Database.DatabaseMonad(D.empty, createTable, insertRecord, describeTable, deleteTable, select) where
+
+import           Control.Monad.State.Strict(MonadState, modify, get, put)
 
 import           Data.Database.Types
 import qualified Data.Database.Table as T
 import qualified Data.Database.Database as D
 
-type DatabaseMonad a = State D.Database a
-
-createTable :: String -> [T.Field] -> String -> DatabaseMonad ()
+createTable :: MonadState D.Database db => String -> [T.Field] -> String -> db ()
 createTable name fields description = modify (D.createTable name fields description)
 
-insertRecord :: String -> Record -> DatabaseMonad Bool
+insertRecord :: MonadState D.Database db => String -> Record -> db Bool
 insertRecord name record = maybeModify (D.insertRecord name record)
 
-describeTable :: String -> DatabaseMonad (Maybe String)
+describeTable :: MonadState D.Database db => String -> db (Error String)
 describeTable name = D.describeTable name <$> get
 
-deleteTable :: String -> DatabaseMonad Bool
+deleteTable :: MonadState D.Database db => String -> db Bool
 deleteTable name = maybeModify (D.deleteTable name)
 
-select :: String -> T.Constraint -> [String] -> DatabaseMonad (Maybe [[String]])
+select :: MonadState D.Database db => String -> T.Constraint -> [String] -> db (Error [[String]])
 select name constraints outputs = D.select name constraints outputs <$> get
 
-maybeModify :: (D.Database -> Maybe D.Database) -> DatabaseMonad Bool
+maybeModify :: MonadState D.Database db => (D.Database -> Error D.Database) -> db (Bool)
 maybeModify f = maybe (return False) ((True <$) . put) . f =<< get
