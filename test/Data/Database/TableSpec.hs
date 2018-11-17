@@ -1,13 +1,19 @@
 module Data.Database.TableSpec (spec) where
 
 import Test.Hspec
-import Data.Database.Table(Table(..))
+import Data.Database.Table(Table(..), empty)
 
 -- Hspec example 
 -- Usage with stack :: stack test
 
 spec :: Spec
 spec = do
-  describe "Data.Database.Table" $ do
+  describe "Creating an empty Data.Database.Table" $ do
+    
     it "should return an empty Table" $ do
-      head [23 ..] `shouldBe` (23 :: Int)    
+      let emptyTable = empty "Language" []
+      (tableName emptyTable) `shouldBe` "Language"
+    
+    it "shoud return an empty list of column" $ do
+      let emptyTable = empty "Language" []
+      (fields emptyTable) `shouldBe` []
