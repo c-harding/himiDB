@@ -1,125 +1,105 @@
+{-# language FlexibleContexts #-}
 module Main where
 
-import Data.Database.Database
-import Data.Database.Types
-import Data.Database.Table
 import Control.Monad.State.Strict
 import System.Exit (exitSuccess)
-import Data.List (foldl')
-import Control.Monad
+import Control.Applicative (some, liftA2)
 
 -- parsing stuff
 import Text.Parsec
-import Text.Parsec.Token
+
+import qualified Data.Database.DatabaseMonad as DBM
+import Data.Database.Database
+import Data.Database.Types
+import Data.Database.Table
+
+
+type Parser = Parsec String ()
+
+data Input
+  = Create String [Field] String
+  | Insert String Record
+  | Describe String
+  | Delete String
+  | Select String Constraint [String]
+  | Exit
+  deriving (Show)
+
+tok :: String -> Parser String
+tok word = spaces *> string word
+
+typeP :: Parser Type
+typeP = 
+    IntRecord <$ tok "int" <|> StringRecord <$ tok "string"
+   
+nameP :: Parser String
+nameP = liftA2 (:) letter (many alphaNum)
+
+fieldP :: Parser Field
+fieldP = (,) <$ spaces <*> nameP <* space <*> typeP
+
+fieldsP :: Parser [Field]
+fieldsP = tok "(" *> fieldP `sepBy` (tok ",") <* tok ")"
+
+createP :: Parser Input
+createP = 
+    Create <$ tok "create" <* some space <*> nameP <*> fieldsP <* some space <*> many anyChar
+-- <*> many alphaNum
+
+describeP :: Parser Input
+describeP = 
+    Describe <$ tok "describe" <* some space <*> nameP
+
+deleteP :: Parser Input
+deleteP = 
+    Delete <$ tok "delete" <* some space <*> nameP
+
+intP :: Parser Int 
+intP = read <$> some digit
+
+valueP :: Parser Value
+valueP = 
+        IntValue <$> intP 
+    <|> StringValue <$> some alphaNum
+
+recordP :: Parser Record
+recordP = 
+    tok "(" *> valueP `sepBy` (tok ",") <* tok ")"
+
+insertP :: Parser Input
+insertP = 
+    Insert <$ tok "insert" <* some space <*> nameP <* some space <*> recordP
+
+exitP :: Parser Input
+exitP = Exit <$ string "exit"
+
+inputP :: Parser Input
+inputP =
+        createP
+    <|> insertP
+    <|> describeP
+    <|> deleteP
+    <|> exitP
+
+input2State :: (MonadState Database m, MonadIO m) => Input -> m () 
+input2State (Create name pFields descr) = 
+    DBM.createTable name pFields descr >> get >>= liftIO . print
+input2State (Insert name record) = 
+    DBM.insertRecord name record >> get >>= liftIO . print
+input2State (Delete name)        = 
+   DBM.deleteTable name >> get >>= liftIO . print
+input2State (Select name contraints pFields) =
+    maybe (pure ()) (liftIO . print) =<< DBM.select name contraints pFields
+input2State (Describe name) = maybe (pure ()) (liftIO . print) =<< DBM.describeTable name
+input2State Exit            = liftIO exitSuccess
+
+gitInput :: (MonadState Database m, MonadIO m) => m () 
+gitInput = forever $ do
+    s <- liftIO getLine
+    let eitherInput = parse inputP "" s
+    case eitherInput of
+        Left _ -> pure ()
+        Right input -> input2State input
 
 main :: IO ()
-main = return ()
---main = evalStateT getInput []
-
---g :: [String] -> StateT Database IO ()
---g wrds@(cmd:arguments) = foldl' f wrds commands
---
---f :: [String] -> [(String, String, Int, [String] -> StateT Database IO ())] -> StateT Database IO ()
---f acc b = undefined
---
---commands :: [(String, String, Int, [String] -> StateT Database IO ())]
---commands =
---    [ ("create", "Create Table", 2, 
---        \arguments -> 
---            do
---                let (name:fields:[])= arguments
---                --modify $ createTable name fields
---                modify $ createTable name [("asdf", IntRecord)]
---)]
-    --,("describe", "Describe Table",)
-    --,("insert", "Insert Record", --    ),("delete", "Delete Record",)
-    --,("select", "Select Record",)
-    --,("exit", "Exit",)
-
-typeP :: Parsec String () Type
-typeP = do
-    s <- many1 alphaNum
-    case s of
-        "IntRecord"    -> return IntRecord
-        "StringRecord" -> return StringRecord
-        _              -> fail "String doesn't fit Type" 
-    
-fieldP :: Parsec String () Field
-fieldP = do
-    char '('
-    s <- many1 alphaNum
-    char ','
-    t <- typeP
-    char ')'
-    return (s,t)
-
-fieldsP :: Parsec String () [Field]
-fieldsP = do
-    char '['
-    fields <- fieldP `sepBy` (char ',')
-    char ']'
-    return fields
-
-getInput :: StateT Database IO ()
-getInput = do
-    liftIO $ putStrLn "Enter a database command or 'exit' to quit."
-    s <- liftIO $ getLine
-    let (cmd:arguments) = words s
-    when (hasCorrectNumberOfArguments cmd arguments) $ do
-        case cmd of
-            "create"   -> do
-                            let (name:fields:[])= arguments
-                                result = parse fieldsP "parseFields" fields
-                            case result of
-                                Left errMsg   -> pure ()
-                                Right fields' -> modify $ createTable name fields' "todo <- get desc from IO CLI"
---            "insert"   -> do
---                            let (name:record:[]) = arguments
---                            db <- get 
---                            let mdb = insertRecord name record db
---                            case mdb of
---                                Nothing -> return ()
---                                Just newDB -> put newDB
---            "describe" -> do
---                            let (name:[]) = arguments
---                            db <- get
---                            let mdb = describeTable name db
---                            case mdb of
---                                Nothing -> liftIO $ putStrLn "Table doesn't exist"
---                                Just response -> liftIO $ putStrLn response 
---            "delete"   -> do
---                            let (name:[]) = arguments
---                            db <- get
---                            let mdb = deleteTable name db
---                            case mdb of
---                                Nothing -> return ()
---                                Just newDB -> put newDB 
---            "update"   -> do
---                            let (name:fields:[]) = arguments
---                            db <- get
---                            let mdb = deleteTable name db
---                            case mdb of
---                                Nothing -> return ()
---                                Just newDB -> modify $ createTable name fields newDB
---            "select"   -> do
---                            let (name:constraints:outputs) = arguments
---                            db <- get
---                            let mls = select name constraints outputs db
---                            case mls of
---                                Nothing   -> liftIO $ putStrLn "Nothing found."
---                                Just   ls -> mapM_ print ls
---            "exit"     -> liftIO $ exitSuccess
---            _          -> return ()
-
--- counting the number of arguments, disregarding the Database argument
-hasCorrectNumberOfArguments :: String -> [String] -> Bool
-hasCorrectNumberOfArguments cmd arguments = 
-    let noExpectedArgs = case cmd of
-                            "describe" -> 1
-                            "delete"   -> 1
-                            "create"   -> 2
-                            "insert"   -> 2
-                            "update"   -> 2
-                            "select"   -> 3
-                            _          -> 0
-    in noExpectedArgs == length arguments
+main = evalStateT gitInput []
