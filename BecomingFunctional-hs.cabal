@@ -30,3 +30,18 @@ executable BecomingFunctional-hs
                        .
   default-language:    Haskell2010
   ghc-options:         -Wall
+
+test-suite spec
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  hs-source-dirs:
+      Test
+  ghc-options: -Wall
+  build-depends:
+      base
+    , hspec
+  other-modules:
+      Test.Data.Database.RecordSpec
+      Data.Database.Record
+  default-language: Haskell2010
+  build-tool-depends: hspec-discover:hspec-discover == 2.*

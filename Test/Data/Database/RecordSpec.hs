@@ -7,7 +7,7 @@ import Data.Database.Record(Record)
 -- Usage with stack :: stack setup && stack test
  
 main :: IO ()
-main = hspec $ do
+main = spec $ do
   describe "Data.Database.Record" $ do
     it "should return an empty Record" $ do
       head [23 ..] `shouldBe` (23 :: Int)
