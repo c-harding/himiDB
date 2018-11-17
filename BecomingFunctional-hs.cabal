@@ -21,7 +21,7 @@ executable BecomingFunctional-hs
                        Data.Database.Database
                        Data.Database.DatabaseMonad
                        Data.Database.Table
-                       Data.Database.Record
+                       Data.Database.Types
   -- other-extensions:
   build-depends:       base
                      , containers
@@ -40,7 +40,8 @@ test-suite spec
       base
     , hspec
   other-modules:
-      Data.Database.RecordSpec
-      Data.Database.Record
+      Data.Database.TableSpec
+      Data.Database.Table
+      Data.Database.Types
   default-language: Haskell2010
   build-tool-depends: hspec-discover:hspec-discover == 2.*

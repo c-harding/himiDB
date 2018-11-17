@@ -1,7 +1,7 @@
 module Main where
 
 import Data.Database.Database
-import Data.Database.Record
+import Data.Database.Types
 import Data.Database.Table
 import Control.Monad.State.Strict
 import System.Exit (exitSuccess)
