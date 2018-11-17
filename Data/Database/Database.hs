@@ -38,7 +38,7 @@ tableNameIs :: Table -> String -> Bool
 table `tableNameIs` name = name == tableName table
 
 updateTable :: String -> (Table -> Error Table) -> [Table] -> Error [Table]
-updateTable name f = update ({-"Table not found: "++name-}) (`tableNameIs` name) f
+updateTable name f = update ("Table not found: "++name) (`tableNameIs` name) f
 
 update :: ErrorReport -> (a -> Bool) -> (a -> Error a) -> [a] -> Error [a]
 update msg _ _ []     = throwError (show msg)

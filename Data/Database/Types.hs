@@ -30,7 +30,7 @@ instance ValueClass Int where
 -- mkValue StringRecord = StringValue
 
 type Error = Either ErrorReport
-type ErrorReport = ()
+type ErrorReport = String
 
 instance Show Value where
     show (IntValue x) = show x
@@ -51,7 +51,7 @@ noError :: a -> Error a
 noError = Right
 
 throwError :: String -> Error a
-throwError _ = Left ()
+throwError = Left
 
 orError :: String -> Maybe a -> Error a
 orError msg = maybe (throwError msg) Right
