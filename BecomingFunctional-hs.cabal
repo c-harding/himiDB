@@ -19,6 +19,7 @@ executable BecomingFunctional-hs
   main-is:             main.hs
   other-modules:
                        Data.Database.Database
+                       Data.Database.DatabaseMonad
                        Data.Database.Table
                        Data.Database.Record
   -- other-extensions:

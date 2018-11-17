@@ -1,6 +1,4 @@
-{-# LANGUAGE NamedFieldPuns #-}
-
-module Data.Database.Database(Database, empty, createTable, insertRecord, describeTable, deleteTable, select) where
+module Data.Database.Database(Database, empty, createTable, insertRecord, describeTable, deleteTable, deleteWhere, select) where
 
 import           Data.Database.Table(Table(tableName), Constraint)
 import           Data.Database.Record(Record)
