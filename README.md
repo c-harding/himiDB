@@ -1,6 +1,6 @@
-# Function Database in Haskell - FDiH 
+# The Haskell In-Memory Interactive Database System - HimiDB
 
-* Realized on [MuniHack 2018](https://munihac.github.io/)
+* Realised at [MuniHack 2018](https://munihac.github.io/)
 * Based on [Scala API project](https://github.com/jbackfield/BecomingFunctional.git)
  
 ## Idea 
@@ -19,3 +19,4 @@ stack test
 
 * [Haskellstack](https://docs.haskellstack.org/en/stable/README/) - The Haskell Tool Stack
 * [Hspec](https://hspec.github.io/) - A Testing Framework For Haskell
+* [Megaparsec](http://hackage.haskell.org/package/megaparsec) - A Haskell parsing library, used for the CLI
