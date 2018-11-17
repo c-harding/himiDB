@@ -57,16 +57,16 @@ buildConstraints fields constraints =
   case constraints of 
     StrEq a b -> 
       liftA2 (liftA2 (==))
-        (resolveExpr getStringValue fields a)
-        (resolveExpr getStringValue fields b)
+        (resolveExpr StringRecord fields a)
+        (resolveExpr StringRecord fields b)
     IntEq a b -> 
       liftA2 (liftA2 (==))
-        (resolveExpr getIntValue fields a)
-        (resolveExpr getIntValue fields b)
+        (resolveExpr IntRecord fields a)
+        (resolveExpr IntRecord fields b)
     IntLt a b ->
       liftA2 (liftA2 (<))
-        (resolveExpr getIntValue fields a)
-        (resolveExpr getIntValue fields b)
+        (resolveExpr IntRecord fields a)
+        (resolveExpr IntRecord fields b)
     And con1 con2 ->
       liftA2 (liftA2 (&&))
         (buildConstraints fields con1)
@@ -77,9 +77,14 @@ buildConstraints fields constraints =
         (buildConstraints fields con2)
     Not con -> (not .) <$> buildConstraints fields con
 
-resolveExpr :: (Value -> a) -> [Field] -> Either a String -> Maybe ([Value] -> a)
+resolveExpr :: ValueClass a => Type -> [Field] -> Either a String -> Maybe ([Value] -> a)
 resolveExpr _ _ (Left lit) = Just $ const lit
-resolveExpr getValue fields (Right col) = fmap getValue . flip (!!) <$> col `elemIndex` (map fst fields)
+resolveExpr t fields (Right col) = fmap (getValue) . flip (!!) <$> colIndex (col, t) fields
+
+colIndex :: (String, Type) -> [Field] -> Error Int
+colIndex (col, t) fields = checkColType =<< col `elemIndex` (map fst fields)
+  where
+    checkColType c = if snd (fields !! c) == t then Just c else Nothing
 
 checkType :: Field -> Value -> Error ()
 checkType (_, StringRecord) (StringValue _) = Just ()
