@@ -22,7 +22,7 @@ describeTable :: String -> Database -> Maybe String
 describeTable name db = T.describe <$> getTable name db
 
 deleteTable :: String -> Database -> Maybe Database
-deleteTable name [] = Nothing
+deleteTable _ [] = Nothing
 deleteTable name (t:ts)
   | t `tableNameIs` name = Just ts
   | otherwise            = (t:) <$> deleteTable name ts
@@ -40,13 +40,13 @@ tableNameIs :: Table -> String -> Bool
 table `tableNameIs` name = name == tableName table
 
 update :: (a -> Bool) -> (a -> a) -> [a] -> Maybe [a]
-update p f []     = Nothing
+update _ _ []     = Nothing
 update p f (x:xs)
   | p x           = Just $ f x : xs
   | otherwise     = (x :) <$> update p f xs
 
 liftUpdate :: (a -> Bool) -> (a -> Maybe a) -> [a] -> Maybe [a]
-liftUpdate p f []     = Nothing
+liftUpdate _ _ []     = Nothing
 liftUpdate p f (x:xs)
   | p x               = (: xs) <$> f x
   | otherwise         = (x :) <$> liftUpdate p f xs
