@@ -10,8 +10,8 @@ type Database = [Table]
 empty :: Database
 empty = []
 
-createTable :: String -> [T.Field] -> Database -> Database
-createTable name fields db = (T.empty name fields : db)
+createTable :: String -> [T.Field] -> String -> Database -> Database
+createTable name fields description db = (T.empty name fields description: db)
 
 insertRecord :: String -> Record -> Database -> Maybe Database
 insertRecord name record = liftUpdate (`tableNameIs` name) (T.addRecord record)

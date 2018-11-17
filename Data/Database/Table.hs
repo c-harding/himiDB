@@ -18,9 +18,12 @@ data Table = Table
   , description :: Description
   }  deriving (Show)
 
+
+emptyTableDescription :: String
+emptyTableDescription = ""
 -- Creates an empty Table
-empty :: String -> [Field] -> Table
-empty name fields = Table name fields [] ""
+empty :: String -> [Field] -> String -> Table
+empty name fields description = Table name fields [] emptyTableDescription
 
 addRecord :: Record -> Table -> Error Table
 addRecord record table = checkTypes (fields table) record *> Just table{records = record : records table}

@@ -72,7 +72,7 @@ getInput = do
                                 result = parse fieldsP "parseFields" fields
                             case result of
                                 Left errMsg   -> pure ()
-                                Right fields' -> modify $ createTable name fields'
+                                Right fields' -> modify $ createTable name fields' "todo <- get desc from IO CLI"
 --            "insert"   -> do
 --                            let (name:record:[]) = arguments
 --                            db <- get 

@@ -8,8 +8,8 @@ import qualified Data.Database.Database as D
 
 type DatabaseMonad a = State D.Database a
 
-createTable :: String -> [T.Field] -> DatabaseMonad ()
-createTable name fields = modify (D.createTable name fields)
+createTable :: String -> [T.Field] -> String -> DatabaseMonad ()
+createTable name fields description = modify (D.createTable name fields description)
 
 insertRecord :: String -> Record -> DatabaseMonad Bool
 insertRecord name record = maybeModify (D.insertRecord name record)
