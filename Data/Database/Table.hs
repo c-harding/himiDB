@@ -5,7 +5,7 @@ module Data.Database.Table(Table(tableName, fields), empty, Field, addRecord, Co
 import Data.Database.Record(Record(Record), Type(..), Value(..))
 import qualified Data.Database.Record as R
 import Data.List(elemIndex, transpose, intercalate)
-import Data.Maybe(catMaybes)
+import Data.Maybe()
 data Constraint
   = StrEq Col String
   | IntEq Col Int
@@ -24,11 +24,12 @@ data Table = Table
   { tableName :: Name 
   , fields :: [Field]
   , records :: [Record]
+  , description :: Description
   }  deriving (Show)
 
 -- Creates an empty Table
 empty :: String -> [Field] -> Table
-empty name fields = Table name fields []
+empty name fields = Table name fields [] ""
 
 addRecord :: Record -> Table -> Maybe Table
 addRecord record table = Just table{records = record : records table}
@@ -41,7 +42,7 @@ filterCols selected fields result = filterRow <$> result
   
 zipFilter :: [Bool] -> [a] -> [a]
 zipFilter (True : ts) (x : xs) = x : zipFilter ts xs
-zipFilter (False : ts) (x : xs) = zipFilter ts xs
+zipFilter (False : ts) (_ : xs) = zipFilter ts xs
 zipFilter _ _ = []
 
 select :: Constraint -> [String] -> Table -> Maybe [[String]]
@@ -86,11 +87,11 @@ conditionAt i p vs = p (vs !! i)
 
 stringMatches :: (String -> Bool) -> Value -> Bool
 stringMatches p (StringValue s) = p s
-stringMatches p _ = False
+stringMatches _ _ = False
 
 intMatches :: (Int -> Bool) -> Value -> Bool
 intMatches p (IntValue i) = p i
-intMatches p _ = False
+intMatches _ _ = False
 
 describe :: Table -> String
 describe table = intercalate " | " (zipWith pad lengths titles) ++ "\n"
