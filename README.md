@@ -1,4 +1,4 @@
-# The Haskell In-Memory Interactive Database System - HimiDB
+# The Haskell in-memory interactive database - HimiDB
 
 * Realised at [MuniHac 2018](https://munihac.github.io/)
  

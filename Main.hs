@@ -237,6 +237,7 @@ functions =
   , ("help", "Show the help guide, with examples", [])
   , ("exit", "Exit and clear the database", ["^D"])
   ]
+
 helpMessage :: Bool -> String
 helpMessage long = intercalate "\n" (header ++ (helpFunction =<< functions))
   where
