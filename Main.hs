@@ -9,7 +9,7 @@ import System.Console.Haskeline
 import System.Directory (getHomeDirectory)
 import Control.Monad.State.Strict
 import System.Exit (exitSuccess)
-import Control.Applicative (liftA2, optional, (<|>))
+import Control.Applicative (liftA2, optional, (<|>), (<**>))
 import Data.Foldable (asum)
 import Data.Char (isSpace)
 import Data.List (intercalate)
@@ -19,6 +19,7 @@ import System.IO
 import System.Console.ANSI
 import Text.Megaparsec hiding (empty, getInput)
 import Text.Megaparsec.Char hiding (space1)
+import Control.Monad.Combinators.Expr
 
 type Parser = Parsec Void String
 
@@ -109,36 +110,70 @@ inputP = (<* eof) . (hidden space *>) . asum $ map try
   , Help <$ keyword' "help"
   ]
 
-parseConstraint :: Parser Constraint
-parseConstraint = starP 
+bExpr :: Parser Constraint
+bExpr = makeExprParser bTerm bOperators
 
-starP :: Parser Constraint
-starP = All <$ symbol "*"
+bOperators :: [[Operator Parser Constraint]]
+bOperators =
+  [ [Prefix (Not <$ symbol "!") ]
+  , [InfixL (And <$ symbol "&&")
+    , InfixL (Or <$ symbol "||") ]
+  ]
 
-notP :: Parser Constraint
-notP = Not <$ keyword' "not" <*> parseConstraint
+bTerm :: Parser Constraint
+bTerm =  between (symbol "(") (symbol ")") bExpr
+  <|> try intRelation <|> strRelation 
 
-andP :: Parser Constraint
-andP = And <$> parseConstraint <*> (symbol "&&" *> parseConstraint)
+intRelation :: Parser Constraint
+intRelation = (intExprP <**> intRelationOp) <*> intExprP
 
-orP :: Parser Constraint
-orP = Or <$> parseConstraint <* symbol "||" <*> parseConstraint
+strRelation :: Parser Constraint
+strRelation = (strExprP <**> strRelationOp) <*> strExprP
 
+intRelationOp :: Parser (IntExpr -> IntExpr -> Constraint)  
+intRelationOp = 
+      (IntEq <$ symbol "==")
+  <|> (IntLt <$ symbol "<")
+
+strRelationOp :: Parser (StrExpr -> StrExpr -> Constraint) 
+strRelationOp = StrEq <$ symbol "==="
+   
 intExprP :: Parser IntExpr
 intExprP = Left <$> intP <|> Right <$> nameP
 
 strExprP :: Parser StrExpr
 strExprP = Left <$> stringLitP <|> Right <$> nameP
 
-intLtP :: Parser Constraint
-intLtP = IntLt <$> intExprP <* symbol "<" <*> intExprP
-
-intEqP :: Parser Constraint
-intEqP = IntEq <$> intExprP <* symbol "==" <*> intExprP
-
-strEqP :: Parser Constraint
-strEqP = StrEq <$> strExprP <* symbol "===" <*> strExprP
-
+--notP :: Parser Constraint
+--notP = Not <$ keyword' "not" <*> parseConstraint
+--
+--andP :: Parser Constraint
+--andP = And <$> parseConstraint <*> (symbol "&&" *> parseConstraint)
+--
+--orP :: Parser Constraint
+--orP = Or <$> parseConstraint <* symbol "||" <*> parseConstraint
+--
+--
+--intLtP :: Parser Constraint
+--intLtP = IntLt <$> intExprP <* symbol "<" <*> intExprP
+--
+--intEqP :: Parser Constraint
+--intEqP = IntEq <$> intExprP <* symbol "==" <*> intExprP
+--
+--strEqP :: Parser Constraint
+--strEqP = StrEq <$> strExprP <* symbol "===" <*> strExprP
+--
+--allP :: Parser Constraint
+--allP = All <$ symbol ""
+--
+--parseConstraint :: Parser Constraint
+--parseConstraint = 
+--        try strEqP
+--    <|> try intEqP
+--    <|> try intLtP
+--    <|> try notP
+--    <|> try andP
+--    <|> orP
 
 runInput :: (MonadState Database m, MonadIO m) => Input -> m () 
 runInput input = case input of

@@ -30,6 +30,7 @@ executable himiDB
                      , megaparsec >= 7.0.0
                      , ansi-terminal
                      , directory
+                     , parser-combinators
   hs-source-dirs:    ., Data
   default-language:    Haskell2010
   ghc-options:         -Wall
