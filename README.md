@@ -20,3 +20,4 @@ stack test
 * [Haskellstack](https://docs.haskellstack.org/en/stable/README/) - The Haskell Tool Stack
 * [Hspec](https://hspec.github.io/) - A Testing Framework For Haskell
 * [Megaparsec](http://hackage.haskell.org/package/megaparsec) - A Haskell parsing library, used for the CLI
+* [Haskeline](http://hackage.haskell.org/package/haskeline) - A Haskell command line interface
