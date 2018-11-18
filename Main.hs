@@ -34,43 +34,50 @@ data Input
 space1 :: Parser ()
 space1 = spaceChar *> hidden space
 
-tok :: String -> Parser String
-tok word = hidden space *> string word
+keyword :: String -> Parser String
+keyword word = string word <* notFollowedBy alphaNumChar <* hidden space
+
+keyword' :: String -> Parser String
+keyword' word = string' word <* notFollowedBy alphaNumChar <* hidden space
+
+symbol :: String -> Parser String
+symbol sym = string sym <* hidden space
 
 typeP :: Parser Type
-typeP = IntRecord <$ tok "int" <|> StringRecord <$ tok "string"
+typeP = IntRecord <$ keyword' "int"
+    <|> StringRecord <$ keyword' "string"
    
 nameP :: Parser String
-nameP = hidden space *> liftA2 (:) letterChar (hidden $ many alphaNumChar)
+nameP = liftA2 (:) letterChar (hidden $ many alphaNumChar) <* notFollowedBy alphaNumChar <* hidden space
 
 fieldP :: Parser Field
-fieldP = (,) <$> nameP <* space1 <*> typeP
+fieldP = (,) <$> nameP <*> typeP
 
 colsP :: Parser [String]
-colsP = tok "(" *> nameP `sepBy` (tok ",") <* tok ")"
-    <|> [] <$ spaceChar <* tok "*"
-    <|> return <$ spaceChar <*> nameP
+colsP = symbol "(" *> nameP `sepBy` (symbol ",") <* symbol ")"
+    <|> [] <$ symbol "*"
+    <|> return <$> nameP
 
 fieldsP :: Parser [Field]
-fieldsP = tok "(" *> fieldP `sepBy` (tok ",") <* tok ")"
+fieldsP = between (symbol "(") (symbol ")") $ fieldP `sepBy` symbol ","
 
 createP :: Parser Input
-createP = Create <$ tok "create" <* space1 <*> nameP <*> fieldsP <* space <*> (many (noneOf "\n") <?> "description")
+createP = Create <$ keyword' "create" <*> nameP <*> fieldsP <* space <*> (many (noneOf "\n") <?> "description")
 
 selectP :: Parser Input
-selectP = Select <$ tok "select" <* space1 <*> nameP <*> colsP <* space <*> pure All
+selectP = Select <$ keyword' "select" <*> nameP <*> colsP <*> pure All
 
 describeP :: Parser Input
-describeP = Describe <$ tok "describe" <*> optional (space *> nameP)
+describeP = Describe <$ keyword' "describe" <*> optional (space *> nameP)
 
 dropP :: Parser Input
-dropP = Drop <$ tok "drop" <* space1 <*> nameP
+dropP = Drop <$ keyword' "drop" <* space1 <*> nameP
 
 intP :: Parser Int 
-intP = read <$> liftA2 (++) (string "-" <|> pure "") (some digitChar)
+intP = read <$> liftA2 (++) (symbol "-" <|> pure "") (some digitChar) <* notFollowedBy digitChar
 
-parseString :: Parser String
-parseString = tok "\"" *> many character <* char '"'
+stringLitP :: Parser String
+stringLitP = symbol "\"" *> many character <* char '"'
   where
     nonEscape = noneOf "\\\"\0\n"
     character = nonEscape <|> escape
@@ -81,22 +88,23 @@ parseString = tok "\"" *> many character <* char '"'
 
 valueP :: Parser Value
 valueP = IntValue <$> intP
-     <|> StringValue <$> parseString
+     <|> StringValue <$> stringLitP
 
 recordP :: Parser Record
-recordP = tok "(" *> (hidden space *> valueP) `sepBy` (tok ",") <* tok ")"
+recordP = between (symbol "(") (symbol ")") $ valueP `sepBy` symbol ","
 
 insertP :: Parser Input
-insertP = Insert <$ tok "insert" <* space1 <*> nameP <* space1 <*> recordP
+insertP = Insert <$ keyword' "insert" <*> nameP <*> recordP
 
 inputP :: Parser Input
-inputP = asum $ map try
+inputP = (hidden space *>) . asum $ map try
   [ createP
   , insertP
   , describeP
   , dropP
-  , Exit <$ tok "exit"
-  , Help <$ tok "help"
+  , selectP
+  , Exit <$ keyword' "exit"
+  , Help <$ keyword' "help"
   ]
 
 runInput :: (MonadState Database m, MonadIO m) => Input -> m () 
