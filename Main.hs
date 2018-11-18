@@ -71,7 +71,7 @@ describeP :: Parser Input
 describeP = Describe <$ keyword' "describe" <*> optional (space *> nameP)
 
 dropP :: Parser Input
-dropP = Drop <$ keyword' "drop" <* space1 <*> nameP
+dropP = Drop <$ keyword' "drop" <*> nameP
 
 intP :: Parser Int 
 intP = read <$> liftA2 (++) (symbol "-" <|> pure "") (some digitChar) <* notFollowedBy digitChar
