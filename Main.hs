@@ -107,6 +107,37 @@ inputP = (<* eof) . (hidden space *>) . asum $ map try
   , Help <$ keyword' "help"
   ]
 
+parseConstraint :: Parser Constraint
+parseConstraint = starP 
+
+starP :: Parser Constraint
+starP = All <$ symbol "*"
+
+notP :: Parser Constraint
+notP = Not <$ keyword' "not" <*> parseConstraint
+
+andP :: Parser Constraint
+andP = And <$> parseConstraint <*> (symbol "&&" *> parseConstraint)
+
+orP :: Parser Constraint
+orP = Or <$> parseConstraint <* symbol "||" <*> parseConstraint
+
+intExprP :: Parser IntExpr
+intExprP = Left <$> intP <|> Right <$> nameP
+
+strExprP :: Parser StrExpr
+strExprP = Left <$> stringLitP <|> Right <$> nameP
+
+intLtP :: Parser Constraint
+intLtP = IntLt <$> intExprP <* symbol "<" <*> intExprP
+
+intEqP :: Parser Constraint
+intEqP = IntEq <$> intExprP <* symbol "==" <*> intExprP
+
+strEqP :: Parser Constraint
+strEqP = StrEq <$> strExprP <* symbol "===" <*> strExprP
+
+
 runInput :: (MonadState Database m, MonadIO m) => Input -> m () 
 runInput input = case input of
   Create name pFields descr -> maybe (return ()) (liftIO . printError) =<< D.createTable name pFields descr

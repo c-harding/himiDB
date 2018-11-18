@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 
 module Data.Database.Types(
-  Type(..), Value(..), Constraint(..), ValueClass(..),
+  Type(..), Value(..), Constraint(..), ValueClass(..), IntExpr(..), StrExpr(..),
   Field, Col, Name, Description, Error, ErrorReport, Record,
   noError, throwError, orError) where
 

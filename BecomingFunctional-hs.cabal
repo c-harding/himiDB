@@ -16,7 +16,7 @@ extra-source-files:  ChangeLog.md
 cabal-version:       >=1.10
 
 executable BecomingFunctional-hs
-  main-is:             main.hs
+  main-is:             Main.hs
   other-modules:
                        Data.Database.Database
                        Data.Database.DatabaseMonad
