@@ -4,7 +4,10 @@
 module Data.Database.Types(
   Type(..), Value(..), Constraint(..), ValueClass(..), IntExpr(..), StrExpr(..),
   Field, Col, Name, Description, Error, ErrorReport, Record,
-  noError, throwError, orError) where
+  noError, throwError, orError, drawTable) where
+
+import Data.List (intercalate, transpose)
+import Data.Maybe (fromMaybe)
 
 data Type = IntRecord | StringRecord deriving (Eq)
 instance Show Type where
@@ -67,3 +70,18 @@ throwError = Left
 
 orError :: String -> Maybe a -> Error a
 orError msg = maybe (throwError msg) Right
+
+drawTable :: Show a => Maybe [[String]] -> [[a]] -> String
+drawTable headers table = 
+  maybe "" headerBlock headers
+  ++ intercalate "\n" (map (intercalate " | " . zipWith pad lengths) values)
+  where
+    headerBlock headers =
+      intercalate "\n" (map (intercalate " | " . zipWith pad lengths) headers)
+      ++ intercalate "-+-" (map (`replicate` '-') lengths) ++ "\n"
+    
+    values = map show <$> table
+    lengths = maximum . map length <$> transpose (fromMaybe [] headers ++ values)
+
+    pad n [] = replicate n ' '
+    pad n (x:xs) = x : pad (pred n) xs
