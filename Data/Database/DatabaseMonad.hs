@@ -2,14 +2,14 @@
 
 module Data.Database.DatabaseMonad(D.Database, D.empty, createTable, insertRecord, describeTable, deleteTable, select, deleteWhere, showTables) where
 
-import           Control.Monad.State.Strict(MonadState, modify, get, put)
+import           Control.Monad.State.Strict(MonadState, get, put)
 
 import           Data.Database.Types
 import qualified Data.Database.Table as T
 import qualified Data.Database.Database as D
 
-createTable :: MonadState D.Database db => String -> [Field] -> String -> db ()
-createTable name fields description = modify (D.createTable name fields description)
+createTable :: MonadState D.Database db => String -> [Field] -> String -> db (Maybe ErrorReport)
+createTable name fields description = maybeModify (D.createTable name fields description)
 
 insertRecord :: MonadState D.Database db => String -> Record -> db (Maybe ErrorReport)
 insertRecord name record = maybeModify (D.insertRecord name record)

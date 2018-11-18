@@ -10,8 +10,10 @@ type Database = [Table]
 empty :: Database
 empty = []
 
-createTable :: String -> [Field] -> String -> Database -> Database
-createTable name fields description db = (T.empty name fields description: db)
+createTable :: String -> [Field] -> String -> Database -> Error Database
+createTable name fields description db = case find (`tableNameIs` name) db of
+  Nothing -> noError $ T.empty name fields description : db
+  Just _ -> throwError $ "Table exists: "++name
 
 insertRecord :: String -> Record -> Database -> Error Database
 insertRecord name record = updateTable name (T.addRecord record)
