@@ -97,7 +97,7 @@ insertP :: Parser Input
 insertP = Insert <$ keyword' "insert" <*> nameP <*> recordP
 
 inputP :: Parser Input
-inputP = (hidden space *>) . asum $ map try
+inputP = (<* eof) . (hidden space *>) . asum $ map try
   [ createP
   , insertP
   , describeP
@@ -121,6 +121,7 @@ runInput input = case input of
 
 getInput :: IO String
 getInput = do
+  saveCursor
   putStr "himiDB > "
   hFlush stdout
   s <- getLine
