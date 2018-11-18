@@ -9,10 +9,10 @@
 Scala -> Haskell
 ```
 
-## Running the tests
+## Run tests -> Build -> Run up the himiDB
 
 ```
-stack test
+stack test && stack build && stack exec himiDB
 ```
 
 ## Built With
@@ -21,3 +21,16 @@ stack test
 * [Hspec](https://hspec.github.io/) - A Testing Framework For Haskell
 * [Megaparsec](http://hackage.haskell.org/package/megaparsec) - A Haskell parsing library, used for the CLI
 * [Haskeline](http://hackage.haskell.org/package/haskeline) - A Haskell command line interface
+
+## himiDB CLI
+ 
+```
+create: Create a table
+drop: Delete a table and its contents
+describe: Show all tables, or the data of one table
+insert: Insert a row into a table
+select: Select data from a table
+delete: Delete data from a table
+help: Show the help guide, with examples
+exit: Exit and clear the database
+```
