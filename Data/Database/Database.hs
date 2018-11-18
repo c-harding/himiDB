@@ -27,7 +27,7 @@ deleteTable name (t:ts)
   | t `tableNameIs` name = noError ts
   | otherwise            = (t:) <$> deleteTable name ts
 
-select :: String -> Constraint -> [String] -> Database -> Error [[String]]
+select :: String -> Constraint -> [String] -> Database -> Error [[Value]]
 select name constraints outputs db = T.select constraints outputs =<< getTable name db
 
 deleteWhere :: String -> Constraint -> Database -> Error Database

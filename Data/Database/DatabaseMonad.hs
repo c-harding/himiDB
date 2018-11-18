@@ -23,7 +23,7 @@ showTables = D.showTables <$> get
 deleteTable :: MonadState D.Database db => String -> db (Maybe ErrorReport)
 deleteTable name = maybeModify (D.deleteTable name)
 
-select :: MonadState D.Database db => String -> T.Constraint -> [String] -> db (Error [[String]])
+select :: MonadState D.Database db => String -> T.Constraint -> [String] -> db (Error [[Value]])
 select name constraints outputs = D.select name constraints outputs <$> get
 
 deleteWhere :: MonadState D.Database db => String -> T.Constraint -> db (Maybe ErrorReport)

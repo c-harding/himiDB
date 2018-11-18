@@ -20,8 +20,8 @@ empty name fields description = Table name fields [] description
 addRecord :: Record -> Table -> Error Table
 addRecord record table = checkTypes (fields table) record *> noError table{records = record : records table}
 
-filterCols :: [String] -> [Field] -> Error [[String]] -> Error [[String]]
-filterCols selected fields result = filterRow <$> result
+filterCols :: [String] -> [Field] -> Error [[a]] -> Error [[a]]
+filterCols selected fields result = map filterRow <$> result
   where 
     keepColumn (name, _) = name `elem` selected
     filterRow row = zipFilter (keepColumn <$> fields) row
@@ -31,7 +31,7 @@ zipFilter (True : ts) (x : xs) = x : zipFilter ts xs
 zipFilter (False : ts) (_ : xs) = zipFilter ts xs
 zipFilter _ _ = []
 
-select :: Constraint -> [String] -> Table -> Error [[String]]
+select :: Constraint -> [String] -> Table -> Error [[Value]]
 select constraints [] table = applyConstraints constraints table
 select constraints xs table = filterCols xs (fields table) . applyConstraints constraints $ table
 
@@ -41,11 +41,10 @@ deleteWhere constraints table = do
   let records' = filter predicate (records table)
   return table{records=records'}
 
-applyConstraints  :: Constraint -> Table -> Error [[String]]
+applyConstraints  :: Constraint -> Table -> Error [[Value]]
 applyConstraints constraints table = do 
   predicate <- buildConstraints (fields table) constraints
-  let values = (filter predicate (records table))
-  return (map show <$> values)
+  return (filter predicate (records table))
 
 buildConstraints :: [Field] -> Constraint -> Error ([Value] -> Bool)
 buildConstraints fields constraints = 
