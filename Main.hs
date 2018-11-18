@@ -248,10 +248,14 @@ helpMessage long = intercalate "\n" (header ++ (helpFunction =<< functions))
 haskelineSettings :: (Monad m, MonadIO io) => io (Settings m)
 haskelineSettings = do
   getDir <- liftIO $ fmap (++ "/.himidb_history") getHomeDirectory
-  return $ Settings noCompletion (Just getDir) True
+  return $ Settings completionFunction (Just getDir) True
 
 listOfCliCommands :: [String]
 listOfCliCommands = map (\(e,_,_)->e) functions
 
 searchFuncForAutoCompletation :: String -> [Completion]
 searchFuncForAutoCompletation str = map simpleCompletion $ filter (str `isPrefixOf`) listOfCliCommands
+
+completionFunction :: Monad m => CompletionFunc m
+completionFunction (erofeb, "") = return ("", searchFuncForAutoCompletation (reverse erofeb))
+completionFunction (erofeb, _) = return (erofeb, [])
