@@ -83,7 +83,7 @@ intP :: Parser Int
 intP = read <$> liftA2 (++) (symbol "-" <|> pure "") (some digitChar) <* notFollowedBy digitChar
 
 stringLitP :: Parser String
-stringLitP = symbol "\"" *> many character <* char '"'
+stringLitP = char '"' *> many character <* symbol "\""
   where
     nonEscape = noneOf "\\\"\0\n"
     character = nonEscape <|> escape
@@ -179,7 +179,8 @@ getInput = do
   where
     loop = do
       handleInterrupt loop $ do 
-        ms <- withInterrupt $ getInputLine "himiDB > "
+        let prompt = setSGRCode [SetColor Foreground Vivid Black] ++ "himiDB > " ++ setSGRCode []
+        ms <- withInterrupt $ getInputLine prompt
         case ms of
           Just s
             | not (all isSpace s) -> return s
