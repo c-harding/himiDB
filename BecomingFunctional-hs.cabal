@@ -41,6 +41,8 @@ test-suite spec
       base
     , hspec
   other-modules:
+      Data.Database.Database
+      Data.Database.DatabaseSpec
       Data.Database.TableSpec
       Data.Database.Table
       Data.Database.Types
