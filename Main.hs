@@ -5,6 +5,8 @@ import qualified Data.Database.DatabaseMonad as D
 import Data.Database.DatabaseMonad (Database, empty)
 import Data.Database.Types
 
+import System.Console.Haskeline
+import System.Directory (getHomeDirectory)
 import Control.Monad.State.Strict
 import System.Exit (exitSuccess)
 import Control.Applicative (liftA2, optional, (<|>))
@@ -152,16 +154,23 @@ runInput input = case input of
 
 getInput :: IO String
 getInput = do
-  saveCursor
-  putStr "himiDB > "
-  hFlush stdout
-  s <- getLine
-  if all isSpace s then getInput else return s
+  settings <- haskelineSettings
+  runInputT settings loop
+  where
+    loop = do
+      handleInterrupt loop $ do 
+        ms <- withInterrupt $ getInputLine "himiDB > "
+        case ms of
+          Just s
+            | not (all isSpace s) -> return s
+            | otherwise -> loop
+          Nothing -> liftIO exitSuccess
+
 
 repl :: (MonadState Database m, MonadIO m) => m () 
-repl = [1..] `forM_` \i -> do
+repl = forever $ do
   s <- liftIO getInput
-  let eitherInput = parse inputP ("<repl>:"++show (i :: Int)) s
+  let eitherInput = parse inputP "" s
   case eitherInput of
     Left errMsg -> liftIO . printError . getParseError $ errMsg
     Right input -> runInput input
@@ -202,7 +211,7 @@ functions =
   , ("describe", "Describe a table, or all tables", ["describe", "describe tableName"])
   , ("insert", "Insert a row into a table", ["insert tableName (1, \"me\")"])
   , ("help", "Show the help guide, with examples", [])
-  , ("exit", "Exit and clear the database", ["^C"])
+  , ("exit", "Exit and clear the database", ["^D"])
   ]
 helpMessage :: Bool -> String
 helpMessage long = intercalate "\n" (header ++ (helpFunction =<< functions))
@@ -211,3 +220,8 @@ helpMessage long = intercalate "\n" (header ++ (helpFunction =<< functions))
     helpFunction (name, desc, ex)
       | long = [name++":", "  "++desc] ++ (("  > "++) <$> ex) ++ [""]
       | otherwise = [name++": "++desc]
+
+haskelineSettings :: (Monad m, MonadIO io) => io (Settings m)
+haskelineSettings = do
+  getDir <- liftIO $ fmap (++ "/.himidb_history") getHomeDirectory
+  return $ Settings noCompletion (Just getDir) True

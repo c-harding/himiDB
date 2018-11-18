@@ -15,7 +15,7 @@ build-type:          Simple
 extra-source-files:  ChangeLog.md
 cabal-version:       >=1.10
 
-executable BecomingFunctional-hs
+executable himiDB
   main-is:             Main.hs
   other-modules:
                        Data.Database.Database
@@ -26,8 +26,10 @@ executable BecomingFunctional-hs
   build-depends:       base
                      , containers
                      , mtl
+                     , haskeline
                      , megaparsec >= 7.0.0
                      , ansi-terminal
+                     , directory
   hs-source-dirs:    ., Data
   default-language:    Haskell2010
   ghc-options:         -Wall
