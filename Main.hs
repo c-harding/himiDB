@@ -68,7 +68,7 @@ createP :: Parser Input
 createP = Create <$ keyword' "create" <*> nameP <*> fieldsP <* space <*> (many (noneOf "\n") <?> "description")
 
 selectP :: Parser Input
-selectP = Select <$ keyword' "select" <*> nameP <*> colsP <*> pure All
+selectP = Select <$ keyword' "select" <*> nameP <*> colsP <*> (keyword' "where" *> constraintP <|> pure All)
 
 describeP :: Parser Input
 describeP = Describe <$ keyword' "describe" <*> optional (space *> nameP)
@@ -110,18 +110,18 @@ inputP = (<* eof) . (hidden space *>) . asum $ map try
   , Help <$ keyword' "help"
   ]
 
-bExpr :: Parser Constraint
-bExpr = makeExprParser bTerm bOperators
+constraintP :: Parser Constraint
+constraintP = makeExprParser constrTermP constrOpP
 
-bOperators :: [[Operator Parser Constraint]]
-bOperators =
+constrOpP :: [[Operator Parser Constraint]]
+constrOpP =
   [ [Prefix (Not <$ symbol "!") ]
   , [InfixL (And <$ symbol "&&")
     , InfixL (Or <$ symbol "||") ]
   ]
 
-bTerm :: Parser Constraint
-bTerm =  between (symbol "(") (symbol ")") bExpr
+constrTermP :: Parser Constraint
+constrTermP =  between (symbol "(") (symbol ")") constraintP
   <|> try intRelation <|> strRelation 
 
 intRelation :: Parser Constraint
@@ -132,48 +132,30 @@ strRelation = (strExprP <**> strRelationOp) <*> strExprP
 
 intRelationOp :: Parser (IntExpr -> IntExpr -> Constraint)  
 intRelationOp = 
-      (IntEq <$ symbol "==")
-  <|> (IntLt <$ symbol "<")
+      IntEq <$ symbol "="
+  <|> IntLt <$ symbol "<"
+  <|> intGt <$ symbol ">"
+  <|> intLe <$ symbol "<="
+  <|> intGe <$ symbol ">="
+  <|> intNe <$ symbol "<>"
+  where
+    intGt a b = IntLt b a
+    intLe a b = Or (IntLt a b) (IntEq a b)
+    intGe a b = Or (intGt a b) (IntEq a b)
+    intNe a b = Or (IntLt a b) (IntLt b a)
 
 strRelationOp :: Parser (StrExpr -> StrExpr -> Constraint) 
-strRelationOp = StrEq <$ symbol "==="
+strRelationOp =
+      StrEq <$ symbol "=="
+  <|> strNe <$ symbol "!="
+  where
+    strNe a b = Not (StrEq a b)
    
 intExprP :: Parser IntExpr
 intExprP = Left <$> intP <|> Right <$> nameP
 
 strExprP :: Parser StrExpr
 strExprP = Left <$> stringLitP <|> Right <$> nameP
-
---notP :: Parser Constraint
---notP = Not <$ keyword' "not" <*> parseConstraint
---
---andP :: Parser Constraint
---andP = And <$> parseConstraint <*> (symbol "&&" *> parseConstraint)
---
---orP :: Parser Constraint
---orP = Or <$> parseConstraint <* symbol "||" <*> parseConstraint
---
---
---intLtP :: Parser Constraint
---intLtP = IntLt <$> intExprP <* symbol "<" <*> intExprP
---
---intEqP :: Parser Constraint
---intEqP = IntEq <$> intExprP <* symbol "==" <*> intExprP
---
---strEqP :: Parser Constraint
---strEqP = StrEq <$> strExprP <* symbol "===" <*> strExprP
---
---allP :: Parser Constraint
---allP = All <$ symbol ""
---
---parseConstraint :: Parser Constraint
---parseConstraint = 
---        try strEqP
---    <|> try intEqP
---    <|> try intLtP
---    <|> try notP
---    <|> try andP
---    <|> orP
 
 runInput :: (MonadState Database m, MonadIO m) => Input -> m () 
 runInput input = case input of
