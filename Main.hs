@@ -70,6 +70,9 @@ createP = Create <$ keyword' "create" <*> nameP <*> fieldsP <* space <*> (many (
 selectP :: Parser Input
 selectP = Select <$ keyword' "select" <*> nameP <*> colsP <*> (keyword' "where" *> constraintP <|> pure All)
 
+deleteP :: Parser Input
+deleteP = Delete <$ keyword' "delete" <*> nameP <*> (keyword' "where" *> constraintP <|> pure All)
+
 describeP :: Parser Input
 describeP = Describe <$ keyword' "describe" <*> optional (space *> nameP)
 
