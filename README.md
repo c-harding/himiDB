@@ -21,30 +21,28 @@ Joshua Backfield’s book, _Becoming Functional: Steps for Transforming Into a F
 
 ## Demo
 
-<pre>
-HimiDB v0.1
-The Haskell In-Memory Interactive Database System
-Created for the MuniHac 2018
-type `help` for instructions
+    HimiDB v0.1
+    The Haskell In-Memory Interactive Database System
+    Created for the MuniHac 2018
+    type `help` for instructions
 
-<font color="gray">himiDB ></font> create users (id int, name string) a table to describe my subscribers
-<font color="gray">himiDB ></font> insert users (1, "me") (2, "you") (3, "him")
-<font color="gray">himiDB ></font> insert users ("them", 4)
-<font color="red">Error: Wrong type for column id</font>
-<font color="gray">himiDB ></font> describe
-users (id int, name string) a table to describe my subscribers
-<font color="gray">himiDB ></font> describe users
-users: a table to describe my subscribers
-id  | name
-int | string
-----+-------
-3   | "him"
-2   | "you"
-1   | "me"
-<font color="gray">himiDB ></font> select users * where name == "me" || id > 2
-3 | "him"
-1 | "me"
-</pre>
+    himiDB > create users (id int, name string) a table to describe my subscribers
+    himiDB > insert users (1, "me") (2, "you") (3, "him")
+    himiDB > insert users ("them", 4)
+    Error: Wrong type for column id
+    himiDB > describe
+    users (id int, name string) a table to describe my subscribers
+    himiDB > describe users
+    users: a table to describe my subscribers
+    id  | name
+    int | string
+    ----+-------
+    3   | "him"
+    2   | "you"
+    1   | "me"
+    himiDB > select users * where name == "me" || id > 2
+    3 | "him"
+    1 | "me"
 
 ## himiDB CLI
  
