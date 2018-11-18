@@ -3,8 +3,9 @@
 module Data.Database.Table(Table(tableName, fields), empty, addRecord, Constraint, select, deleteWhere, describe, showTable) where
 
 import Data.Database.Types
-import Data.List(elemIndex, transpose, intercalate)
-import Control.Applicative(liftA2)
+
+import Data.List           (elemIndex, transpose, intercalate)
+import Control.Applicative (liftA2)
  
 data Table = Table 
   { tableName :: Name 

@@ -1,9 +1,10 @@
 module Data.Database.Database(Database, empty, createTable, insertRecord, describeTable, deleteTable, deleteWhere, select, showTables) where
 
 import           Data.Database.Types
-import           Data.Database.Table(Table(tableName), Constraint, showTable)
+import           Data.Database.Table      (Table(tableName), Constraint, showTable)
 import qualified Data.Database.Table as T
-import Data.List(find, intercalate)
+
+import           Data.List                (find, intercalate)
 
 type Database = [Table]
 

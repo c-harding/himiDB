@@ -2,24 +2,23 @@
 module Main where
 
 import qualified Data.Database.DatabaseMonad as D
-import Data.Database.DatabaseMonad (Database, empty)
-import Data.Database.Types
+import           Data.Database.Types
 
-import System.Console.Haskeline
-import System.Directory (getHomeDirectory)
-import Control.Monad.State.Strict
-import System.Exit (exitSuccess)
-import Control.Applicative (liftA2, optional, (<|>), (<**>))
-import Data.Foldable (asum)
-import Data.Char (isSpace)
-import Data.List (intercalate, isPrefixOf)
-import Data.Void 
-import qualified Data.List.NonEmpty as NE
-import System.IO
-import System.Console.ANSI
-import Text.Megaparsec hiding (empty, getInput)
-import Text.Megaparsec.Char hiding (space1)
-import Control.Monad.Combinators.Expr
+import           Data.Char                      (isSpace)
+import           Data.Foldable                  (asum)
+import           Data.List                      (intercalate, isPrefixOf)
+import qualified Data.List.NonEmpty       as NE
+import           Data.Void                      (Void)
+import           Control.Applicative            (liftA2, optional, (<|>), (<**>))
+import           Control.Monad.Combinators.Expr (Operator(..), makeExprParser)
+import           Control.Monad.State.Strict
+import           System.Console.ANSI
+import           System.Console.Haskeline
+import           System.Directory               (getHomeDirectory)
+import           System.Exit                    (exitSuccess)
+import           System.IO                      (hPutStrLn, stderr)
+import           Text.Megaparsec         hiding (empty, getInput)
+import           Text.Megaparsec.Char    hiding (space1)
 
 type Parser = Parsec Void String
 
@@ -160,7 +159,7 @@ intExprP = Left <$> intP <|> Right <$> nameP
 strExprP :: Parser StrExpr
 strExprP = Left <$> stringLitP <|> Right <$> nameP
 
-runInput :: (MonadState Database m, MonadIO m) => Input -> m () 
+runInput :: (MonadState D.Database m, MonadIO m) => Input -> m () 
 runInput input = case input of
   Create name pFields descr -> maybe (return ()) (liftIO . printError) =<< D.createTable name pFields descr
   Insert name record -> (maybe (return ()) (liftIO . printError) <=< D.insertRecord name) `mapM_` record
@@ -188,7 +187,7 @@ getInput = do
           Nothing -> liftIO exitSuccess
 
 
-repl :: (MonadState Database m, MonadIO m) => m () 
+repl :: (MonadState D.Database m, MonadIO m) => m () 
 repl = forever $ do
   s <- liftIO getInput
   let eitherInput = parse inputP "" s
@@ -214,7 +213,7 @@ printError msg = do
 main :: IO ()
 main = do
   welcome
-  evalStateT repl empty
+  evalStateT repl D.empty
 
 welcome :: IO ()
 welcome = mapM_ putStrLn
