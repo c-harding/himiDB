@@ -24,13 +24,42 @@ stack build && stack test && stack exec himiDB
 
 ## himiDB CLI
  
-```
-create: Create a table
-drop: Delete a table and its contents
-describe: Show all tables, or the data of one table
-insert: Insert a row into a table
-select: Select data from a table
-delete: Delete data from a table
-help: Show the help guide, with examples
-exit: Exit and clear the database
-```
+    Usage:
+
+    create:
+        Create a table
+        > create myTable (a int, b int, c int)
+        > create tableName (col1 int, col2 string) description goes here
+
+    drop:
+        Delete a table and its contents
+        > drop tableName
+
+    describe:
+        Show all tables, or the data of one table
+        > describe
+        > describe tableName
+
+    insert:
+        Insert a row into a table
+        > insert tableName (1, "me")
+        > insert tableName (1, "me") (2, "you")
+
+    select:
+        Select data from a table
+        > select tableName *
+        > select tableName col1
+        > select tableName (col1, col2)
+        > select tableName * where col1 > 4 || col2 == "me"
+
+    delete:
+        Delete data from a table
+        > delete tableName
+        > delete tableName where col1 > 4 || col2 == "me"
+
+    help:
+        Show the help guide, with examples
+
+    exit:
+        Exit and clear the database
+        > ^D
