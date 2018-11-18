@@ -9,10 +9,10 @@
 Scala -> Haskell
 ```
 
-## Run tests -> Build -> Run up the himiDB
+## Build -> Run tests -> Run up the himiDB
 
 ```
-stack test && stack build && stack exec himiDB
+stack build && stack test && stack exec himiDB
 ```
 
 ## Built With
