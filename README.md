@@ -1,5 +1,41 @@
 # The Haskell in-memory interactive database - HimiDB
 
+```
+HHHHHHHHH     HHHHHHHHH  iiii                            iiii  
+H:::::::H     H:::::::H i::::i                          i::::i 
+H:::::::H     H:::::::H  iiii                            iiii  
+HH::::::H     H::::::HH                                        
+  H:::::H     H:::::H  iiiiiii    mmmmmmm    mmmmmmm   iiiiiii 
+  H:::::H     H:::::H  i:::::i  mm:::::::m  m:::::::mm i:::::i 
+  H::::::HHHHH::::::H   i::::i m::::::::::mm::::::::::m i::::i 
+  H:::::::::::::::::H   i::::i m::::::::::::::::::::::m i::::i 
+  H:::::::::::::::::H   i::::i m:::::mmm::::::mmm:::::m i::::i 
+  H::::::HHHHH::::::H   i::::i m::::m   m::::m   m::::m i::::i 
+  H:::::H     H:::::H   i::::i m::::m   m::::m   m::::m i::::i 
+  H:::::H     H:::::H   i::::i m::::m   m::::m   m::::m i::::i 
+HH::::::H     H::::::HHi::::::im::::m   m::::m   m::::mi::::::i
+H:::::::H     H:::::::Hi::::::im::::m   m::::m   m::::mi::::::i
+H:::::::H     H:::::::Hi::::::im::::m   m::::m   m::::mi::::::i
+HHHHHHHHH     HHHHHHHHHiiiiiiiimmmmmm   mmmmmm   mmmmmmiiiiiiii
+
+DDDDDDDDDDDDD      BBBBBBBBBBBBBBBBB   
+D::::::::::::DDD   B::::::::::::::::B  
+D:::::::::::::::DD B::::::BBBBBB:::::B 
+DDD:::::DDDDD:::::DBB:::::B     B:::::B
+  D:::::D    D:::::D B::::B     B:::::B
+  D:::::D     D:::::DB::::B     B:::::B
+  D:::::D     D:::::DB::::BBBBBB:::::B 
+  D:::::D     D:::::DB:::::::::::::BB  
+  D:::::D     D:::::DB::::BBBBBB:::::B 
+  D:::::D     D:::::DB::::B     B:::::B
+  D:::::D     D:::::DB::::B     B:::::B
+  D:::::D    D:::::D B::::B     B:::::B
+DDD:::::DDDDD:::::DBB:::::BBBBBB::::::B
+D:::::::::::::::DD B:::::::::::::::::B 
+D::::::::::::DDD   B::::::::::::::::B  
+DDDDDDDDDDDDD      BBBBBBBBBBBBBBBBB   
+```
+
 * Realised at [MuniHac 2018](https://munihac.github.io/)
  
 ## Idea 
