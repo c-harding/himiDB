@@ -109,7 +109,7 @@ inputP = (hidden space *>) . asum $ map try
 
 runInput :: (MonadState Database m, MonadIO m) => Input -> m () 
 runInput input = case input of
-  Create name pFields descr -> D.createTable name pFields descr >> get >>= liftIO . print
+  Create name pFields descr -> maybe (return ()) (liftIO . printError) =<< D.createTable name pFields descr
   Insert name record -> maybe (return ()) (liftIO . printError) =<< D.insertRecord name record
   Drop name -> maybe (return ()) (liftIO . printError) =<< D.deleteTable name
   Select name pFields contraints -> either (liftIO . printError) (liftIO . print) =<< D.select name contraints pFields
