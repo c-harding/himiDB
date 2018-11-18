@@ -242,7 +242,7 @@ helpMessage long = intercalate "\n" (header ++ (helpFunction =<< functions))
   where
     header = if long then ["Usage:",""] else []
     helpFunction (name, desc, ex)
-      | long = [name++":", "  "++desc] ++ (("  > "++) <$> ex) ++ [""]
+      | long = ["- "++name++":", "    "++desc] ++ (("    > "++) <$> ex) ++ [""]
       | otherwise = [name++": "++desc]
 
 haskelineSettings :: (Monad m, MonadIO io) => io (Settings m)

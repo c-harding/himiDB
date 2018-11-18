@@ -1,19 +1,16 @@
 # The Haskell In-Memory Interactive Database System - HimiDB
 
 * Realised at [MuniHac 2018](https://munihac.github.io/)
-* Based on [Scala API project](https://github.com/jbackfield/BecomingFunctional.git)
  
 ## Idea 
 
-```
-Scala -> Haskell
-```
+Joshua Backfield’s book, _Becoming Functional: Steps for Transforming Into a Functional Programmer_, introduces a [very simple database engine](https://github.com/jbackfield/BecomingFunctional/tree/master/Chapter10/PuttingItAllTogether) written in Scala. This project is to convert this system into Haskell, and build a CLI frontend for it in a purer way than the Scala system uses.
 
-## Build -> Run tests -> Run up the himiDB
+## Building and executing:
 
-```
-stack build && stack test && stack exec himiDB
-```
+    stack build
+    stack test
+    stack exec himiDB
 
 ## Built With
 
@@ -22,44 +19,71 @@ stack build && stack test && stack exec himiDB
 * [Megaparsec](http://hackage.haskell.org/package/megaparsec) - A Haskell parsing library, used for the CLI
 * [Haskeline](http://hackage.haskell.org/package/haskeline) - A Haskell command line interface
 
+## Demo
+
+<pre>
+HimiDB v0.1
+The Haskell In-Memory Interactive Database System
+Created for the MuniHac 2018
+type `help` for instructions
+
+<font color="gray">himiDB ></font> create users (id int, name string) a table to describe my subscribers
+<font color="gray">himiDB ></font> insert users (1, "me") (2, "you") (3, "him")
+<font color="gray">himiDB ></font> insert users ("them", 4)
+<font color="red">Error: Wrong type for column id</font>
+<font color="gray">himiDB ></font> describe
+users (id int, name string) a table to describe my subscribers
+<font color="gray">himiDB ></font> describe users
+users: a table to describe my subscribers
+id  | name
+int | string
+----+-------
+3   | "him"
+2   | "you"
+1   | "me"
+<font color="gray">himiDB ></font> select users * where name == "me" || id > 2
+3 | "him"
+1 | "me"
+</pre>
+
 ## himiDB CLI
  
     Usage:
 
-    create:
+    - create:
         Create a table
         > create myTable (a int, b int, c int)
         > create tableName (col1 int, col2 string) description goes here
 
-    drop:
+    - drop:
         Delete a table and its contents
         > drop tableName
 
-    describe:
+    - describe:
         Show all tables, or the data of one table
         > describe
         > describe tableName
 
-    insert:
+    - insert:
         Insert a row into a table
         > insert tableName (1, "me")
         > insert tableName (1, "me") (2, "you")
 
-    select:
+    - select:
         Select data from a table
         > select tableName *
         > select tableName col1
         > select tableName (col1, col2)
         > select tableName * where col1 > 4 || col2 == "me"
 
-    delete:
+    - delete:
         Delete data from a table
         > delete tableName
         > delete tableName where col1 > 4 || col2 == "me"
 
-    help:
+    - help:
         Show the help guide, with examples
 
-    exit:
+    - exit:
         Exit and clear the database
         > ^D
