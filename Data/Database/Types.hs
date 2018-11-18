@@ -77,7 +77,7 @@ drawTable headers table =
   ++ intercalate "\n" (map (intercalate " | " . zipWith pad lengths) values)
   where
     headerBlock headers =
-      intercalate "\n" (map (intercalate " | " . zipWith pad lengths) headers)
+      intercalate "\n" (map (intercalate " | " . zipWith pad lengths) headers) ++ "\n"
       ++ intercalate "-+-" (map (`replicate` '-') lengths) ++ "\n"
     
     values = map show <$> table

@@ -95,12 +95,10 @@ checkTypes (f:fs) (v:vs) = checkType f v *> checkTypes fs vs
 checkTypes _ _ = throwError "Wrong number of columns provided"
 
 describe :: Table -> String
-describe table = drawTable (Just [titles, types]) values
+describe table = drawTable (Just [titles, types]) (records table)
   where
     titles = fst <$> fields table
     types = show . snd <$> fields table
-
-    values = map show <$> records table
 
 showTable :: Table -> String
 showTable t = tableName t ++ " (" ++ (intercalate ", " $ showField <$> fields t) ++ ") " ++ description t

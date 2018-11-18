@@ -25,7 +25,7 @@ type Parser = Parsec Void String
 
 data Input
   = Create String [Field] String
-  | Insert String Record
+  | Insert String [Record]
   | Describe (Maybe String)
   | Drop String
   | Select String [String] Constraint
@@ -100,7 +100,7 @@ recordP :: Parser Record
 recordP = between (symbol "(") (symbol ")") $ valueP `sepBy` symbol ","
 
 insertP :: Parser Input
-insertP = Insert <$ keyword' "insert" <*> nameP <*> recordP
+insertP = Insert <$ keyword' "insert" <*> nameP <*> some recordP
 
 inputP :: Parser Input
 inputP = (<* eof) . (hidden space *>) . asum $ map try
@@ -163,7 +163,7 @@ strExprP = Left <$> stringLitP <|> Right <$> nameP
 runInput :: (MonadState Database m, MonadIO m) => Input -> m () 
 runInput input = case input of
   Create name pFields descr -> maybe (return ()) (liftIO . printError) =<< D.createTable name pFields descr
-  Insert name record -> maybe (return ()) (liftIO . printError) =<< D.insertRecord name record
+  Insert name record -> (maybe (return ()) (liftIO . printError) <=< D.insertRecord name) `mapM_` record
   Drop name -> maybe (return ()) (liftIO . printError) =<< D.deleteTable name
   Select name pFields contraints -> either (liftIO . printError) (liftIO . putStrLn . drawTable Nothing) =<< D.select name contraints pFields
   Delete name contraints -> maybe (return ()) (liftIO . printError) =<< D.deleteWhere name contraints
@@ -229,9 +229,10 @@ functions =
   [ ("create", "Create a table", ["create myTable (a int, b int, c int)","create tableName (col1 int, col2 string) description goes here"])
   , ("drop", "Delete a table and its contents", ["drop tableName"])
   , ("describe", "Show all tables, or the data of one table", ["describe", "describe tableName"])
-  , ("insert", "Insert a row into a table", ["insert tableName (1, \"me\")"])
-  , ("select", "Select data from a table", ["select tableName *", "select tableName col1", "select tableName (col1, col2)"])
-  , ("delete", "Delete data from a table", ["delete tableName"])
+  , ("insert", "Insert a row into a table", ["insert tableName (1, \"me\")", "insert tableName (1, \"me\") (2, \"you\")"])
+  , ("select", "Select data from a table",
+      ["select tableName *", "select tableName col1", "select tableName (col1, col2)", "select tableName * where col1 > 4 || col2 == \"me\""])
+  , ("delete", "Delete data from a table", ["delete tableName", "delete tableName where col1 > 4 || col2 == \"me\""])
   , ("help", "Show the help guide, with examples", [])
   , ("exit", "Exit and clear the database", ["^D"])
   ]
