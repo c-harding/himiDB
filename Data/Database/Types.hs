@@ -50,7 +50,8 @@ instance Show Value where
 type StrExpr = Either String String
 type IntExpr = Either Int String
 data Constraint
-  = StrEq StrExpr StrExpr
+  = All
+  | StrEq StrExpr StrExpr
   | IntEq IntExpr IntExpr
   | IntLt IntExpr IntExpr
   | Not Constraint

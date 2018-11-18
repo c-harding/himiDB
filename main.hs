@@ -25,7 +25,7 @@ data Input
   | Insert String Record
   | Describe (Maybe String)
   | Drop String
-  | Select String Constraint [String]
+  | Select String [String] Constraint
   | Delete String Constraint
   | Exit
   | Help
@@ -46,11 +46,19 @@ nameP = hidden space *> liftA2 (:) letterChar (hidden $ many alphaNumChar)
 fieldP :: Parser Field
 fieldP = (,) <$> nameP <* space1 <*> typeP
 
+colsP :: Parser [String]
+colsP = tok "(" *> nameP `sepBy` (tok ",") <* tok ")"
+    <|> [] <$ spaceChar <* tok "*"
+    <|> return <$ spaceChar <*> nameP
+
 fieldsP :: Parser [Field]
 fieldsP = tok "(" *> fieldP `sepBy` (tok ",") <* tok ")"
 
 createP :: Parser Input
 createP = Create <$ tok "create" <* space1 <*> nameP <*> fieldsP <* space <*> (many (noneOf "\n") <?> "description")
+
+selectP :: Parser Input
+selectP = Select <$ tok "select" <* space1 <*> nameP <*> colsP <* space <*> pure All
 
 describeP :: Parser Input
 describeP = Describe <$ tok "describe" <*> optional (space *> nameP)
@@ -96,7 +104,7 @@ runInput input = case input of
   Create name pFields descr -> D.createTable name pFields descr >> get >>= liftIO . print
   Insert name record -> maybe (return ()) (liftIO . printError) =<< D.insertRecord name record
   Drop name -> maybe (return ()) (liftIO . printError) =<< D.deleteTable name
-  Select name contraints pFields -> either (liftIO . printError) (liftIO . print) =<< D.select name contraints pFields
+  Select name pFields contraints -> either (liftIO . printError) (liftIO . print) =<< D.select name contraints pFields
   Delete name contraints -> maybe (return ()) (liftIO . printError) =<< D.deleteWhere name contraints
   Describe Nothing -> liftIO . putStrLn =<< D.showTables
   Describe (Just name) -> either (liftIO . printError) (liftIO . putStrLn) =<< D.describeTable name

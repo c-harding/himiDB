@@ -72,6 +72,7 @@ buildConstraints fields constraints =
         (buildConstraints fields con2)
     Not con ->
       (not .) <$> buildConstraints fields con
+    All -> noError (const True)
 
 resolveExpr :: ValueClass a => Type -> [Field] -> Either a String -> Error ([Value] -> a)
 resolveExpr _ _ (Left lit) = noError $ const lit

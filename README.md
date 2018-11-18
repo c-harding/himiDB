@@ -1,6 +1,6 @@
 # The Haskell In-Memory Interactive Database System - HimiDB
 
-* Realised at [MuniHack 2018](https://munihac.github.io/)
+* Realised at [MuniHac 2018](https://munihac.github.io/)
 * Based on [Scala API project](https://github.com/jbackfield/BecomingFunctional.git)
  
 ## Idea 
