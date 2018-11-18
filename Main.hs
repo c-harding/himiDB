@@ -12,8 +12,8 @@ import System.Exit (exitSuccess)
 import Control.Applicative (liftA2, optional, (<|>), (<**>))
 import Data.Foldable (asum)
 import Data.Char (isSpace)
-import Data.List (intercalate)
-import Data.Void
+import Data.List (intercalate, isPrefixOf)
+import Data.Void 
 import qualified Data.List.NonEmpty as NE
 import System.IO
 import System.Console.ANSI
@@ -249,3 +249,9 @@ haskelineSettings :: (Monad m, MonadIO io) => io (Settings m)
 haskelineSettings = do
   getDir <- liftIO $ fmap (++ "/.himidb_history") getHomeDirectory
   return $ Settings noCompletion (Just getDir) True
+
+listOfCliCommands :: [String]
+listOfCliCommands = map (\(e,_,_)->e) functions
+
+searchFuncForAutoCompletation :: String -> [Completion]
+searchFuncForAutoCompletation str = map simpleCompletion $ filter (str `isPrefixOf`) listOfCliCommands
