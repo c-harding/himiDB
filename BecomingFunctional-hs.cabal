@@ -22,7 +22,6 @@ executable BecomingFunctional-hs
                        Data.Database.DatabaseMonad
                        Data.Database.Table
                        Data.Database.Types
-                       Main
   -- other-extensions:
   build-depends:       base
                      , containers

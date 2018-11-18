@@ -122,6 +122,7 @@ runInput input = case input of
 getInput :: IO String
 getInput = do
   putStr "himiDB > "
+  hFlush stdout
   s <- getLine
   if all isSpace s then getInput else return s
 
